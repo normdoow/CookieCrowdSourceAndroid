@@ -14,11 +14,20 @@
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"/>
 
+    <Button
+        android:id="@+id/location_find_on_map_button"
+        android:visibility="invisible"
+        android:text="Find on Google maps"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_below="@id/location_layout_button"/>
+
     <TextView
         android:id="@+id/location_layout_textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/location_layout_button"
+        android:layout_below="@+id/location_find_on_map_button"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="45dp"
         android:text="@string/empty_string" />
