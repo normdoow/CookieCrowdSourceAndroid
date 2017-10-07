@@ -29,6 +29,28 @@ dependencies {
 
     compile 'com.squareup.retrofit2:retrofit:2.3.0'      //for rest api
 
+    /* This line is all you need for the stripe-android bindings */
+    compile 'com.stripe:stripe-android:4.1.6'
+
+    /* To use the Stripe android pay wrapper, you need these two lines */
+    compile 'com.stripe:stripe-android-pay:4.1.6'
+    compile 'com.google.android.gms:play-services-wallet:11.0.4'
+
+    /* Needed for RxAndroid */
+    compile 'io.reactivex:rxandroid:1.2.1'
+    compile 'io.reactivex:rxjava:1.1.6'
+
+    /* Needed for Rx Bindings on views */
+    compile 'com.jakewharton.rxbinding:rxbinding:0.4.0'
+
+    /* Used to make Retrofit easier and GSON & Rx-compatible*/
+    compile 'com.google.code.gson:gson:2.8.0'
+    compile 'com.squareup.retrofit2:adapter-rxjava:2.0.2'
+    compile 'com.squareup.retrofit2:converter-gson:2.0.0'
+
+    /* Used to debug your Retrofit connections */
+    compile 'com.squareup.okhttp3:logging-interceptor:3.6.0'
+
     compile 'com.jakewharton:butterknife:8.8.1'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
 }

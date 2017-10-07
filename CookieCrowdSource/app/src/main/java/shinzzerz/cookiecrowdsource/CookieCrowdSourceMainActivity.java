@@ -8,38 +8,56 @@ import android.text.Layout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
+import android.widget.Button;
 import android.widget.RelativeLayout;
+
+import com.google.android.gms.wallet.Cart;
+import com.stripe.wrap.pay.AndroidPayConfiguration;
+import com.stripe.wrap.pay.utils.CartManager;
 
 import butterknife.BindView;
 
 import java.io.IOException;
 
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import shinzzerz.restapi.CookieAPI;
+import shinzzerz.stripe.PaymentActivity;
+import shinzzerz.stripe.StoreUtils;
 
 /**
  * Created by administratorz on 9/2/2017.
  */
 
-public class CookieCrowdSourceMainActivity extends AppCompatActivity{
+public class CookieCrowdSourceMainActivity extends AppCompatActivity {
 //    protected @BindView(R.id.main_layout)
 //    RelativeLayout mainActivity;
 
+    private static final String PUBLISHABLE_KEY = "pk_test_tAMChOZmT4OHrVNyhGvJmuLH";
+
     CookieAPI cookieAPI;
+    @BindView(R.id.get_cookies)
+    Button getCookiesButton;
 
     @Override
     public void onCreate(Bundle savedInstance){
         super.onCreate(savedInstance);
         //eventually do some application specific loading
         //depending on app & user state
+
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         RelativeLayout mainActivity;
         mainActivity = (RelativeLayout)getLayoutInflater().inflate(R.layout.main_layout, null);
         setContentView(mainActivity);
+
+        ButterKnife.bind(this);
+
+        initAndroidPay();
 
 //        Intent locationIntent = new Intent(this, CookieCrowdSourceLocationActivity.class);
 //        startActivity(locationIntent);
@@ -52,6 +70,27 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity{
         cookieAPI = retrofit.create(CookieAPI.class);
 
         apiCalls();
+    }
+
+    @OnClick(R.id.get_cookies)
+    public void onGetCookiesClicked(Button button) {
+        CartManager cartManager = new CartManager();
+        cartManager.addLineItem(StoreUtils.getEmojiByUnicode(0x1F36A), (double) 1, 1000);
+        try {
+            Cart cart = cartManager.buildCart();
+            Intent paymentLaunchIntent = PaymentActivity.createIntent(this, cart);
+            startActivity(paymentLaunchIntent);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void initAndroidPay() {
+        AndroidPayConfiguration payConfiguration =
+                AndroidPayConfiguration.init(PUBLISHABLE_KEY, "USD");
+        payConfiguration.setPhoneNumberRequired(false);
+        payConfiguration.setShippingAddressRequired(true);
     }
 
     private void apiCalls() {
@@ -74,23 +113,23 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity{
             }
         });
 
-        Call<ResponseBody> callCreateCustomer = cookieAPI.createCustomer();
-        callCreateCustomer.enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                String customerId = "";
-                try {
-                    customerId = response.body().string();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                System.out.println();
-            }
-
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-                System.out.println();
-            }
-        });
+//        Call<ResponseBody> callCreateCustomer = cookieAPI.createCustomer();
+//        callCreateCustomer.enqueue(new Callback<ResponseBody>() {
+//            @Override
+//            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+//                String customerId = "";
+//                try {
+//                    customerId = response.body().string();
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//                System.out.println();
+//            }
+//
+//            @Override
+//            public void onFailure(Call<ResponseBody> call, Throwable t) {
+//                System.out.println();
+//            }
+//        });
     }
 }
