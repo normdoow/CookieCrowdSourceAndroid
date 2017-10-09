@@ -15,6 +15,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -44,6 +45,8 @@ import java.util.Collection;
 import java.util.Locale;
 import java.util.concurrent.Callable;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import retrofit2.Retrofit;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
@@ -57,6 +60,22 @@ public class PaymentActivity extends StripeAndroidPayActivity {
 
     private static final String TOTAL_LABEL = "Total:";
     private static final Locale LOC = Locale.US;
+
+    @BindView(R.id.email)
+    EditText email;
+    @BindView(R.id.name)
+    EditText name;
+    @BindView(R.id.phone)
+    EditText phone;
+    @BindView(R.id.city)
+    EditText city;
+    @BindView(R.id.line1)
+    EditText line1;
+    @BindView(R.id.line2)
+    EditText line2;
+    @BindView(R.id.postal_code)
+    EditText postalCode;
+
 
     private CartManager mCartManager;
     private CardInputWidget mCardInputWidget;
@@ -88,6 +107,8 @@ public class PaymentActivity extends StripeAndroidPayActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_payment);
+
+        ButterKnife.bind(this);
 
         Bundle extras = getIntent().getExtras();
         Cart cart = extras.getParcelable(EXTRA_CART);
@@ -132,7 +153,7 @@ public class PaymentActivity extends StripeAndroidPayActivity {
                 .subscribe(new Action1<Void>() {
                     @Override
                     public void call(Void aVoid) {
-                        attemptPurchase();
+                        updateCustomerAddress();
                     }
                 });
 
@@ -504,6 +525,47 @@ public class PaymentActivity extends StripeAndroidPayActivity {
                         }));
     }
 
+    private void updateCustomerAddress() {
+        Retrofit retrofit = RetrofitFactory.getInstance();
+        StripeService stripeService = retrofit.create(StripeService.class);
+        String customerName = name.getText().toString();
+        String customerEmail = email.getText().toString();
+        String customerPhone = phone.getText().toString();
+
+        Address address = new Address(city.getText().toString(), "USA", line1.getText().toString(), line2.getText().toString(), postalCode.getText().toString(), "OH");
+        if(address.isValidAddress() && !customerEmail.isEmpty() && !customerName.isEmpty() && !customerPhone.isEmpty()) {
+            Observable<Void> stripeResponse = stripeService.updateCustomerAddress(customerName, customerEmail, customerPhone, address.getCity(), address.getState(), "cus_BWn8JEwXKBrlxm",
+                    address.getLine1(), address.getLine2(), address.getPostalCode());
+            mCompositeSubscription.add(stripeResponse
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(
+                            new Action1<Void>() {
+                                @Override
+                                public void call(Void aVoid) {
+                                    attemptPurchase();
+                                }
+                            },
+                            new Action1<Throwable>() {
+                                @Override
+                                public void call(Throwable throwable) {
+                                    displayError(throwable.getLocalizedMessage());
+                                }
+                            }));
+        } else {            //not a valid address
+            AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+            alertDialog.setTitle("Invalid Address Info");
+            alertDialog.setMessage("You must fill out all of the Address info.");
+            alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    });
+            alertDialog.show();
+        }
+    }
+
     private void proceedWithPurchaseIf3DSCheckIsNotNecessary(Source source) {
         if (source == null || !Source.CARD.equals(source.getType())) {
             displayError("Something went wrong - this should be rare");
@@ -534,7 +596,7 @@ public class PaymentActivity extends StripeAndroidPayActivity {
             return;
         }
 
-        Observable<Void> stripeResponse = stripeService.createQueryCharge(price, sourceId, "cus_BWn8JEwXKBrlxm", "noahbragg@cedarville.edu");
+        Observable<Void> stripeResponse = stripeService.createQueryCharge(price, sourceId, "cus_BWn8JEwXKBrlxm", email.getText().toString());
         final FragmentManager fragmentManager = getSupportFragmentManager();
         mCompositeSubscription.add(stripeResponse
                 .subscribeOn(Schedulers.io())

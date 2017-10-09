@@ -19,4 +19,17 @@ public interface StripeService {
             @Field("source") String source,
             @Field("customer_id") String customerId,
             @Field("email") String email);
+
+    @FormUrlEncoded
+    @POST("update_customer_address")
+    Observable<Void> updateCustomerAddress(
+            @Field("name") String name,
+            @Field("email") String email,
+            @Field("phone") String phone,
+            @Field("city") String city,
+            @Field("state") String state,
+            @Field("customer_id") String customerId,
+            @Field("line_1") String line1,
+            @Field("line_2") String line2,
+            @Field("postal_code") String postalCode);
 }
