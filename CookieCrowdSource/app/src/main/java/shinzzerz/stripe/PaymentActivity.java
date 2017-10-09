@@ -25,7 +25,6 @@ import com.stripe.android.model.SourceParams;
 import com.stripe.android.view.CardInputWidget;
 import com.stripe.wrap.pay.AndroidPayConfiguration;
 import com.stripe.wrap.pay.activity.StripeAndroidPayActivity;
-import java.util.Locale;
 import java.util.concurrent.Callable;
 
 import butterknife.BindView;
@@ -38,6 +37,7 @@ import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
 import shinzzerz.cookiecrowdsource.R;
+import shinzzerz.io.CookieIO;
 
 public class PaymentActivity extends AppCompatActivity {
 
@@ -174,7 +174,8 @@ public class PaymentActivity extends AppCompatActivity {
 
         Address address = new Address(city.getText().toString(), "USA", line1.getText().toString(), line2.getText().toString(), postalCode.getText().toString(), "OH");
         if(address.isValidAddress() && !customerEmail.isEmpty() && !customerName.isEmpty() && !customerPhone.isEmpty()) {
-            Observable<Void> stripeResponse = stripeService.updateCustomerAddress(customerName, customerEmail, customerPhone, address.getCity(), address.getState(), "cus_BWn8JEwXKBrlxm",
+            Observable<Void> stripeResponse = stripeService.updateCustomerAddress(customerName, customerEmail, customerPhone,
+                    address.getCity(), address.getState(), CookieIO.getCustomerId(this),
                     address.getLine1(), address.getLine2(), address.getPostalCode());
             mCompositeSubscription.add(stripeResponse
                     .subscribeOn(Schedulers.io())
@@ -236,7 +237,7 @@ public class PaymentActivity extends AppCompatActivity {
             return;
         }
 
-        Observable<Void> stripeResponse = stripeService.createQueryCharge(price, sourceId, "cus_BWn8JEwXKBrlxm", email.getText().toString());
+        Observable<Void> stripeResponse = stripeService.createQueryCharge(price, sourceId, CookieIO.getCustomerId(this), email.getText().toString());
         final FragmentManager fragmentManager = getSupportFragmentManager();
         mCompositeSubscription.add(stripeResponse
                 .subscribeOn(Schedulers.io())

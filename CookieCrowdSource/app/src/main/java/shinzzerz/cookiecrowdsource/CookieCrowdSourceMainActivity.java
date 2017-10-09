@@ -1,12 +1,10 @@
 package shinzzerz.cookiecrowdsource;
 
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.text.Layout;
-import android.view.LayoutInflater;
-import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.RelativeLayout;
@@ -26,6 +24,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
+import shinzzerz.io.CookieIO;
 import shinzzerz.restapi.CookieAPI;
 import shinzzerz.stripe.PaymentActivity;
 import shinzzerz.stripe.StoreUtils;
@@ -113,23 +112,25 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
             }
         });
 
-//        Call<ResponseBody> callCreateCustomer = cookieAPI.createCustomer();
-//        callCreateCustomer.enqueue(new Callback<ResponseBody>() {
-//            @Override
-//            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-//                String customerId = "";
-//                try {
-//                    customerId = response.body().string();
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//                System.out.println();
-//            }
-//
-//            @Override
-//            public void onFailure(Call<ResponseBody> call, Throwable t) {
-//                System.out.println();
-//            }
-//        });
+        if(CookieIO.getCustomerId(this) == null) {      //create a new customer only if there isn't one already
+            final Context con = this;
+            Call<ResponseBody> callCreateCustomer = cookieAPI.createCustomer();
+            callCreateCustomer.enqueue(new Callback<ResponseBody>() {
+                @Override
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                    try {
+                        CookieIO.setCustomerId(con, response.body().string());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    System.out.println();
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                    System.out.println();
+                }
+            });
+        }
     }
 }
