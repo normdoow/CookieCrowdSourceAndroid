@@ -9,6 +9,8 @@ import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -83,6 +85,16 @@ public class PaymentActivity extends AppCompatActivity {
         mProgressDialogFragment = ProgressDialogFragment.newInstance(R.string.completing_purchase);
 
         mConfirmPaymentButton = (Button) findViewById(R.id.btn_purchase);
+
+        email.setText(CookieIO.getEmail(this));
+        name.setText(CookieIO.getName(this));
+        phone.setText(CookieIO.getPhone(this));
+        city.setText(CookieIO.getCity(this));
+        line1.setText(CookieIO.getLine1(this));
+        line2.setText(CookieIO.getLine2(this));
+        postalCode.setText(CookieIO.getPostalCode(this));
+
+        setupChangeListeners();
 
         RxView.clicks(mConfirmPaymentButton)
                 .subscribe(new Action1<Void>() {
@@ -309,6 +321,96 @@ public class PaymentActivity extends AppCompatActivity {
         InputMethodManager inputManager =
                 (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         inputManager.toggleSoftInput(0, 0);
+    }
+
+    private void setupChangeListeners() {
+
+        final Context context = this;
+
+        email.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+                CookieIO.setEmail(context, s.toString());
+            }
+        });
+        name.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+                CookieIO.setName(context, s.toString());
+            }
+        });
+        phone.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+                CookieIO.setPhone(context, s.toString());
+            }
+        });
+        city.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+                CookieIO.setCity(context, s.toString());
+            }
+        });
+        line1.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+                CookieIO.setLine1(context, s.toString());
+            }
+        });
+        line2.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+                CookieIO.setLine2(context, s.toString());
+            }
+        });
+        postalCode.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+                CookieIO.setPostalCode(context, s.toString());
+            }
+        });
     }
 
 }
