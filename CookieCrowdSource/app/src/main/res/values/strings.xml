@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">CookieCrowdSource</string>
+    <string name="app_name">Crowd Cookie</string>
     <string name="locator_text">Locate me!</string>
     <string name="empty_string"></string>
     <string name="location_perm_explntion">The Cookie Crowd Source App needs your permission to deliver fresh cookies!</string>
