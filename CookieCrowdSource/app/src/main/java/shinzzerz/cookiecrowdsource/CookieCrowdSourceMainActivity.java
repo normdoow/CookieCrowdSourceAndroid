@@ -5,8 +5,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import com.google.android.gms.wallet.Cart;
@@ -40,8 +42,12 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
     private static final String PUBLISHABLE_KEY = "pk_test_tAMChOZmT4OHrVNyhGvJmuLH";
 
     CookieAPI cookieAPI;
+
     @BindView(R.id.get_cookies)
     Button getCookiesButton;
+
+    @BindView(R.id.first_dozen_free_image)
+    ImageView firstDozenImage;
 
     @Override
     public void onCreate(Bundle savedInstance){
@@ -69,6 +75,15 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
         cookieAPI = retrofit.create(CookieAPI.class);
 
         apiCalls();
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(CookieIO.hasBoughtCookies(this)) {
+            firstDozenImage.setVisibility(View.GONE);
+        }
     }
 
     @OnClick(R.id.get_cookies)

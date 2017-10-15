@@ -18,6 +18,7 @@ public class CookieIO {
     private static String LINE1 = "line1";
     private static String LINE2 = "line2";
     private static String POSTAL_CODE = "postal-code";
+    private static String HAS_BOUGHT_COOKIES = "has-bought-cookies";
 
     public static String getCustomerId(Context context) {
         SharedPreferences pref = context.getApplicationContext().getSharedPreferences(PREF, context.MODE_PRIVATE);
@@ -28,6 +29,18 @@ public class CookieIO {
         SharedPreferences pref = context.getApplicationContext().getSharedPreferences(PREF, context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
         editor.putString(CUSTOMER_ID, id);
+        editor.commit();
+    }
+
+    public static boolean hasBoughtCookies(Context context) {
+        SharedPreferences pref = context.getApplicationContext().getSharedPreferences(PREF, context.MODE_PRIVATE);
+        return pref.getBoolean(HAS_BOUGHT_COOKIES, false);
+    }
+
+    public static void setHasBoughtCookies(Context context, boolean hasBoughtCookies) {
+        SharedPreferences pref = context.getApplicationContext().getSharedPreferences(PREF, context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putBoolean(HAS_BOUGHT_COOKIES, hasBoughtCookies);
         editor.commit();
     }
 
