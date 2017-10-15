@@ -2,13 +2,16 @@ package shinzzerz.cookiecrowdsource;
 
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import com.google.android.gms.wallet.Cart;
@@ -56,8 +59,8 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
         //depending on app & user state
 
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        RelativeLayout mainActivity;
-        mainActivity = (RelativeLayout)getLayoutInflater().inflate(R.layout.main_layout, null);
+        LinearLayout mainActivity;
+        mainActivity = (LinearLayout)getLayoutInflater().inflate(R.layout.main_layout, null);
         setContentView(mainActivity);
 
         ButterKnife.bind(this);
@@ -147,5 +150,19 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
                 }
             });
         }
+    }
+
+    @OnClick(R.id.ingredients_button)
+    public void clickIngreditentsButton() {
+        AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+        alertDialog.setTitle("Ingredients");
+        alertDialog.setMessage("Unsalted butter, sugar, brown sugar, eggs, flour, ground oats, semisweet chocolate chips, vanilla, salt, baking powder, baking soda");
+        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+        alertDialog.show();
     }
 }
