@@ -3,6 +3,7 @@ package shinzzerz.cookiecrowdsource;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Window;
@@ -25,6 +26,8 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import shinzzerz.io.CookieIO;
+import shinzzerz.location.GetCurrentLocation;
+import shinzzerz.location.SimpleLocation;
 import shinzzerz.restapi.CookieAPI;
 import shinzzerz.stripe.PaymentActivity;
 import shinzzerz.stripe.StoreUtils;
@@ -38,9 +41,10 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
 //    RelativeLayout mainActivity;
 
     private static final String PUBLISHABLE_KEY = "pk_test_tAMChOZmT4OHrVNyhGvJmuLH";
+    private GetCurrentLocation myLocation = new GetCurrentLocation();
 
     CookieAPI cookieAPI;
-    @BindView(R.id.get_cookies)
+    @BindView(R.id.main_layout_get_cookies_button)
     Button getCookiesButton;
 
     @Override
@@ -55,11 +59,25 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
         setContentView(mainActivity);
 
         ButterKnife.bind(this);
+        if(!myLocation.isLocationPermAvailable(this)){
+            getCookiesButton.setText("Turn location on!");
+            myLocation.turnLocationPermOn(this, false);
+        }
+        else if(!myLocation.isLocationOn(this)){
+            getCookiesButton.setText("Turn location on!");
+        }
+        else{
+            float distanceInMeters = myLocation.getDistanceInMeters(this, new SimpleLocation(R.string.CDC_lat, R.string.CDC_long));
+            double distanceInMiles = distanceInMeters / 1600;
+            if((int)Math.ceil(distanceInMiles) > 5){
+
+            }
+            else{
+
+            }
+        }
 
         initAndroidPay();
-
-//        Intent locationIntent = new Intent(this, CookieCrowdSourceLocationActivity.class);
-//        startActivity(locationIntent);
 
         //init the Retrofit instance for rest api
         Retrofit retrofit = new Retrofit.Builder()
@@ -71,18 +89,25 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
         apiCalls();
     }
 
-    @OnClick(R.id.get_cookies)
+    @OnClick(R.id.main_layout_get_cookies_button)
     public void onGetCookiesClicked(Button button) {
-        CartManager cartManager = new CartManager();
-        cartManager.addLineItem(StoreUtils.getEmojiByUnicode(0x1F36A), (double) 1, 1000);
-        try {
-            Cart cart = cartManager.buildCart();
-            Intent paymentLaunchIntent = PaymentActivity.createIntent(this, cart);
-            startActivity(paymentLaunchIntent);
-        } catch (Exception e) {
-            e.printStackTrace();
+        if(!myLocation.isLocationPermAvailable(this)){
+            myLocation.turnLocationPermOn(this, false);
         }
-
+        else if(!myLocation.isLocationOn(this)){
+            myLocation.turnLocationOn(this, false);
+        }
+        else{
+            CartManager cartManager = new CartManager();
+            cartManager.addLineItem(StoreUtils.getEmojiByUnicode(0x1F36A), (double) 1, 1000);
+            try {
+                Cart cart = cartManager.buildCart();
+                Intent paymentLaunchIntent = PaymentActivity.createIntent(this, cart);
+                startActivity(paymentLaunchIntent);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private void initAndroidPay() {
@@ -131,6 +156,28 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
                     System.out.println();
                 }
             });
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case GetCurrentLocation.LOCATION_PERM_REQUEST: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    //The grantResult array length is greater than zero so permission
+                    //was not cancelled
+                    // permission was granted, turn location on
+                    myLocation.turnLocationOn(this, false);
+
+                } else {
+                    //permission denied for some reason
+                }
+                return;
+            }
         }
     }
 }
