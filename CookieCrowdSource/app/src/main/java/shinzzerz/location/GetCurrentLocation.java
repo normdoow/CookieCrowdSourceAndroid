@@ -8,13 +8,17 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.concurrent.Semaphore;
 
 import shinzzerz.cookiecrowdsource.R;
 
@@ -30,6 +34,7 @@ public class GetCurrentLocation {
     private SimpleLocation aLocation;
     private final long LOCATION_REFRESH_TIME = 1;
     private final float LOCATION_REFRESH_DISTANCE = 0.01f;
+    private Semaphore isLocationFoundNSet = new Semaphore(1, true);
 
     private LocationManager myLocationManager;
     private LocationListener myLocationListener = new LocationListener() {
@@ -40,6 +45,7 @@ public class GetCurrentLocation {
 
             //Stop updating once a new location has been found
             myLocationManager.removeUpdates(myLocationListener);
+            isLocationFoundNSet.release();
         }
 
         @Override
@@ -78,6 +84,9 @@ public class GetCurrentLocation {
             aLocation.setLat(Double.POSITIVE_INFINITY);
             aLocation.setLong(Double.POSITIVE_INFINITY);
             try {
+                if(!isLocationFoundNSet.tryAcquire()){
+                    return;
+                }
                 myLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_REFRESH_TIME,
                         LOCATION_REFRESH_DISTANCE, myLocationListener);
             } catch (SecurityException e) {
@@ -159,17 +168,38 @@ public class GetCurrentLocation {
      * @param simpleLocation
      * @return
      */
-    public float getDistanceInMeters(Activity callingActivity, SimpleLocation simpleLocation) {
+    public double getDistanceInMeters(Activity callingActivity, SimpleLocation simpleLocation) {
         SimpleLocation mySimpleLocation = new SimpleLocation();
         getLocation(callingActivity, false, mySimpleLocation);
-        while(mySimpleLocation.getLong() == Double.POSITIVE_INFINITY ||
-                mySimpleLocation.getLat() == Double.POSITIVE_INFINITY){
-            //wait till get a location
+
+        if(!isLocationFoundNSet.tryAcquire()){
+
+        }
+        else{
+            float[] results = new float[1];
+            Location.distanceBetween(simpleLocation.getLat(), simpleLocation.getLong(), mySimpleLocation.getLat(), mySimpleLocation.getLong(), results);
+            //theDistance = results[0] / 1000;
         }
 
-        float[] results = new float[1];
-        Location.distanceBetween(simpleLocation.getLat(), simpleLocation.getLong(), mySimpleLocation.getLat(), mySimpleLocation.getLong(), results);
-        return results[0];
+        return 0.0;
+    }
+
+    private class AquireLocation extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String... params) {
+            return "";
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+        }
+
+        @Override
+        protected void onPreExecute() {}
+
+        @Override
+        protected void onProgressUpdate(Void... values) {}
     }
 }
 

@@ -2,12 +2,17 @@ package shinzzerz.cookiecrowdsource;
 
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import com.google.android.gms.wallet.Cart;
@@ -45,38 +50,24 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
 
     CookieAPI cookieAPI;
     @BindView(R.id.main_layout_get_cookies_button)
+
     Button getCookiesButton;
 
+    @BindView(R.id.first_dozen_free_image)
+    ImageView firstDozenImage;
+
     @Override
-    public void onCreate(Bundle savedInstance){
+    public void onCreate(Bundle savedInstance) {
         super.onCreate(savedInstance);
         //eventually do some application specific loading
         //depending on app & user state
 
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        RelativeLayout mainActivity;
-        mainActivity = (RelativeLayout)getLayoutInflater().inflate(R.layout.main_layout, null);
+        LinearLayout mainActivity;
+        mainActivity = (LinearLayout) getLayoutInflater().inflate(R.layout.main_layout, null);
         setContentView(mainActivity);
 
         ButterKnife.bind(this);
-        if(!myLocation.isLocationPermAvailable(this)){
-            getCookiesButton.setText("Turn location on!");
-            myLocation.turnLocationPermOn(this, false);
-        }
-        else if(!myLocation.isLocationOn(this)){
-            getCookiesButton.setText("Turn location on!");
-        }
-        else{
-            float distanceInMeters = myLocation.getDistanceInMeters(this, new SimpleLocation(R.string.CDC_lat, R.string.CDC_long));
-            double distanceInMiles = distanceInMeters / 1600;
-            if((int)Math.ceil(distanceInMiles) > 5){
-
-            }
-            else{
-
-            }
-        }
-
         initAndroidPay();
 
         //init the Retrofit instance for rest api
@@ -87,17 +78,44 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
         cookieAPI = retrofit.create(CookieAPI.class);
 
         apiCalls();
+
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        setupLocation();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (CookieIO.hasBoughtCookies(this)) {
+            firstDozenImage.setVisibility(View.GONE);
+        }
+    }
+
+    @OnClick(R.id.ingredients_button)
+    public void clickIngreditentsButton() {
+        AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+        alertDialog.setTitle("Ingredients");
+        alertDialog.setMessage("Unsalted butter, sugar, brown sugar, eggs, flour, ground oats, semisweet chocolate chips, vanilla, salt, baking powder, baking soda");
+        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+        alertDialog.show();
     }
 
     @OnClick(R.id.main_layout_get_cookies_button)
     public void onGetCookiesClicked(Button button) {
-        if(!myLocation.isLocationPermAvailable(this)){
+        if (!myLocation.isLocationPermAvailable(this)) {
             myLocation.turnLocationPermOn(this, false);
-        }
-        else if(!myLocation.isLocationOn(this)){
+        } else if (!myLocation.isLocationOn(this)) {
             myLocation.turnLocationOn(this, false);
-        }
-        else{
+        } else {
             CartManager cartManager = new CartManager();
             cartManager.addLineItem(StoreUtils.getEmojiByUnicode(0x1F36A), (double) 1, 1000);
             try {
@@ -137,7 +155,7 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
             }
         });
 
-        if(CookieIO.getCustomerId(this) == null) {      //create a new customer only if there isn't one already
+        if (CookieIO.getCustomerId(this) == null) {      //create a new customer only if there isn't one already
             final Context con = this;
             Call<ResponseBody> callCreateCustomer = cookieAPI.createCustomer();
             callCreateCustomer.enqueue(new Callback<ResponseBody>() {
@@ -177,6 +195,28 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
                     //permission denied for some reason
                 }
                 return;
+            }
+        }
+    }
+
+    /**
+     * The purpose of this function is to get the location if:
+     * 1. Permissions are available.
+     * 2. Location is turned on
+     */
+    private void setupLocation() {
+        if (!myLocation.isLocationPermAvailable(this)) {
+            getCookiesButton.setText("Turn location on!");
+            myLocation.turnLocationPermOn(this, false);
+        } else if (!myLocation.isLocationOn(this)) {
+            getCookiesButton.setText("Turn location on!");
+        } else {
+            double distanceInMeters = myLocation.getDistanceInMeters(this, new SimpleLocation(R.string.CDC_lat, R.string.CDC_long));
+            double distanceInMiles = distanceInMeters / 1600;
+            if ((int) Math.ceil(distanceInMiles) > 5) {
+
+            } else {
+
             }
         }
     }

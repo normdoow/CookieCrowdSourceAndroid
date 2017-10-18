@@ -9,10 +9,13 @@ import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.google.android.gms.wallet.Cart;
@@ -55,6 +58,10 @@ public class PaymentActivity extends AppCompatActivity {
     EditText line2;
     @BindView(R.id.postal_code)
     EditText postalCode;
+    @BindView(R.id.amount_label)
+    TextView amountLabel;
+    @BindView(R.id.group_manual_entry)
+    LinearLayout creditCardGroup;
 
     private CardInputWidget mCardInputWidget;
     private CompositeSubscription mCompositeSubscription;
@@ -83,6 +90,21 @@ public class PaymentActivity extends AppCompatActivity {
         mProgressDialogFragment = ProgressDialogFragment.newInstance(R.string.completing_purchase);
 
         mConfirmPaymentButton = (Button) findViewById(R.id.btn_purchase);
+
+        email.setText(CookieIO.getEmail(this));
+        name.setText(CookieIO.getName(this));
+        phone.setText(CookieIO.getPhone(this));
+        city.setText(CookieIO.getCity(this));
+        line1.setText(CookieIO.getLine1(this));
+        line2.setText(CookieIO.getLine2(this));
+        postalCode.setText(CookieIO.getPostalCode(this));
+
+        if(!CookieIO.hasBoughtCookies(this)) {
+            amountLabel.setText("Get a Dozen Cookies for FREE!");
+            creditCardGroup.setVisibility(View.GONE);
+        }
+
+        setupChangeListeners();
 
         RxView.clicks(mConfirmPaymentButton)
                 .subscribe(new Action1<Void>() {
@@ -119,6 +141,10 @@ public class PaymentActivity extends AppCompatActivity {
 
     private void attemptPurchase() {
         Card card = mCardInputWidget.getCard();
+        if(!CookieIO.hasBoughtCookies(this)) {
+            completePurchase("no_source_id", 0L);
+            return;
+        }
         if (card == null) {
             displayError("Card Input Error");
             return;
@@ -220,14 +246,13 @@ public class PaymentActivity extends AppCompatActivity {
             // In stripe-android/example.
         } else {
             // If 3DS is not required, you can charge the source.
-            completePurchase(source.getId());
+            completePurchase(source.getId(), 1000L);
         }
     }
 
-    private void completePurchase(String sourceId) {
+    private void completePurchase(String sourceId, Long price) {
         Retrofit retrofit = RetrofitFactory.getInstance();
         StripeService stripeService = retrofit.create(StripeService.class);
-        Long price = 1000L;
 
         if (price == null) {
             // This should be rare, and only occur if there is somehow a mix of currencies in
@@ -236,6 +261,7 @@ public class PaymentActivity extends AppCompatActivity {
             // CartManager.setTotalPrice.
             return;
         }
+        final Context context = this;
 
         Observable<Void> stripeResponse = stripeService.createQueryCharge(price, sourceId, CookieIO.getCustomerId(this), email.getText().toString());
         final FragmentManager fragmentManager = getSupportFragmentManager();
@@ -265,6 +291,7 @@ public class PaymentActivity extends AppCompatActivity {
                         new Action1<Void>() {
                             @Override
                             public void call(Void aVoid) {
+                                CookieIO.setHasBoughtCookies(context, true);
                                 finishCharge();
                             }
                         },
@@ -294,7 +321,7 @@ public class PaymentActivity extends AppCompatActivity {
 
         AlertDialog alertDialog = new AlertDialog.Builder(this).create();
         alertDialog.setTitle("Thank You!");
-        alertDialog.setMessage("Thank you for your order! You will receive a dozen \uD83C\uDF6As in 30 to 40 minutes!");
+        alertDialog.setMessage("Thank you for your order! You will receive a dozen cookies in 30 to 40 minutes!");
         alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "Yay!!!",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
@@ -309,6 +336,96 @@ public class PaymentActivity extends AppCompatActivity {
         InputMethodManager inputManager =
                 (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         inputManager.toggleSoftInput(0, 0);
+    }
+
+    private void setupChangeListeners() {
+
+        final Context context = this;
+
+        email.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+                CookieIO.setEmail(context, s.toString());
+            }
+        });
+        name.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+                CookieIO.setName(context, s.toString());
+            }
+        });
+        phone.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+                CookieIO.setPhone(context, s.toString());
+            }
+        });
+        city.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+                CookieIO.setCity(context, s.toString());
+            }
+        });
+        line1.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+                CookieIO.setLine1(context, s.toString());
+            }
+        });
+        line2.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+                CookieIO.setLine2(context, s.toString());
+            }
+        });
+        postalCode.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+                CookieIO.setPostalCode(context, s.toString());
+            }
+        });
     }
 
 }
