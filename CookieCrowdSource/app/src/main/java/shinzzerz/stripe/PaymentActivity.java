@@ -100,8 +100,8 @@ public class PaymentActivity extends AppCompatActivity {
         postalCode.setText(CookieIO.getPostalCode(this));
 
         if(!CookieIO.hasBoughtCookies(this)) {
-            amountLabel.setText("Get a Dozen Cookies for FREE!");
-            creditCardGroup.setVisibility(View.GONE);
+            amountLabel.setText("Get a Dozen Cookies for $5!");
+//            creditCardGroup.setVisibility(View.GONE);
         }
 
         setupChangeListeners();
@@ -141,10 +141,10 @@ public class PaymentActivity extends AppCompatActivity {
 
     private void attemptPurchase() {
         Card card = mCardInputWidget.getCard();
-        if(!CookieIO.hasBoughtCookies(this)) {
-            completePurchase("no_source_id", 0L);
-            return;
-        }
+//        if(!CookieIO.hasBoughtCookies(this)) {
+//            completePurchase("no_source_id", 0L);
+//            return;
+//        }
         if (card == null) {
             displayError("Card Input Error");
             return;
@@ -246,7 +246,11 @@ public class PaymentActivity extends AppCompatActivity {
             // In stripe-android/example.
         } else {
             // If 3DS is not required, you can charge the source.
-            completePurchase(source.getId(), 1000L);
+            if(CookieIO.hasBoughtCookies(this)) {
+                completePurchase(source.getId(), 1000L);
+            } else {
+                completePurchase(source.getId(), 500L);
+            }
         }
     }
 
