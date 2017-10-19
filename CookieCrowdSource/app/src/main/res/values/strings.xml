@@ -13,6 +13,7 @@
     <string name="total">Total</string>
     <string name="or">or</string>
 
-    <string name="CDC_lat">39.691483</string>
-    <string name="CDC_long">-84.101717</string>
+
+    <item name="CDC_lat" format="float" type="dimen">39.691483</item>
+    <item name="CDC_long" format="float" type="dimen">-84.101717</item>
 </resources>

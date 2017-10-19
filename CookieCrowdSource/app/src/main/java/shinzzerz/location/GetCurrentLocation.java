@@ -15,7 +15,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.concurrent.Semaphore;
@@ -34,7 +33,7 @@ public class GetCurrentLocation {
     private SimpleLocation aLocation;
     private final long LOCATION_REFRESH_TIME = 1;
     private final float LOCATION_REFRESH_DISTANCE = 0.01f;
-    private Semaphore isLocationFoundNSet = new Semaphore(1, true);
+    private Semaphore isLocationFoundNSet = new Semaphore(1);
 
     private LocationManager myLocationManager;
     private LocationListener myLocationListener = new LocationListener() {
@@ -84,7 +83,8 @@ public class GetCurrentLocation {
             aLocation.setLat(Double.POSITIVE_INFINITY);
             aLocation.setLong(Double.POSITIVE_INFINITY);
             try {
-                if(!isLocationFoundNSet.tryAcquire()){
+                if (!isLocationFoundNSet.tryAcquire()) {  //this means that we have already tried to get the location
+                    //and have not received the response yet. So wait until initial request is fulfilled.
                     return;
                 }
                 myLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_REFRESH_TIME,
@@ -93,7 +93,6 @@ public class GetCurrentLocation {
                 Log.e("GetCurrentLocation", "blah");
             }
 
-            return;
         }
     }
 
@@ -116,10 +115,10 @@ public class GetCurrentLocation {
      * @param callingActivity
      */
     public void turnLocationOn(final Activity callingActivity, boolean showMessage) {
-        if(!showMessage){
+        if (!showMessage) {
             Intent myIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
             callingActivity.startActivity(myIntent);
-        }else{
+        } else {
             AlertDialog.Builder dialog = new AlertDialog.Builder(callingActivity);
             dialog.setMessage(R.string.turn_on_location_description);
             dialog.setPositiveButton(callingActivity.getResources().getString(R.string.turn_on_location_description), new DialogInterface.OnClickListener() {
@@ -164,42 +163,44 @@ public class GetCurrentLocation {
     /**
      * Will return the distance from simpleLocation and the current location.
      * This function will not do any permission or location GPS checks.
+     *
      * @param callingActivity
      * @param simpleLocation
      * @return
      */
-    public double getDistanceInMeters(Activity callingActivity, SimpleLocation simpleLocation) {
+    public void getDistanceInMeters(Activity callingActivity, SimpleLocation simpleLocation, SimpleDistance distance) {
         SimpleLocation mySimpleLocation = new SimpleLocation();
         getLocation(callingActivity, false, mySimpleLocation);
-
-        if(!isLocationFoundNSet.tryAcquire()){
-
-        }
-        else{
-            float[] results = new float[1];
-            Location.distanceBetween(simpleLocation.getLat(), simpleLocation.getLong(), mySimpleLocation.getLat(), mySimpleLocation.getLong(), results);
-            //theDistance = results[0] / 1000;
-        }
-
-        return 0.0;
+        (new onLocationAqcuired()).execute(distance, simpleLocation);
     }
 
-    private class AquireLocation extends AsyncTask<String, Void, String> {
+    public boolean isLocationInitialized(){
+        return isLocationFoundNSet.availablePermits() > 0;
+    }
+
+    private class onLocationAqcuired extends AsyncTask<Object, Void, Void> {
+        private SimpleDistance dist;
+        private SimpleLocation simpleLocation;
 
         @Override
-        protected String doInBackground(String... params) {
-            return "";
+        protected Void doInBackground(Object... params) {
+            dist = (SimpleDistance)params[0];
+            simpleLocation = (SimpleLocation)params[1];
+
+            while (isLocationFoundNSet.availablePermits() < 1){
+                //wait
+            }
+
+            return null; //Return is necessary to explicitly notify that the doInBackground is done.
         }
 
         @Override
-        protected void onPostExecute(String result) {
+        protected void onPostExecute(Void params) {
+            float[] results = new float[1];
+            Location.distanceBetween(aLocation.getLat(), aLocation.getLong(), simpleLocation.getLat(), simpleLocation.getLong(), results);
+
+            dist.setDistance(results[0], DistTypeEnum.Meters);
         }
-
-        @Override
-        protected void onPreExecute() {}
-
-        @Override
-        protected void onProgressUpdate(Void... values) {}
     }
 }
 

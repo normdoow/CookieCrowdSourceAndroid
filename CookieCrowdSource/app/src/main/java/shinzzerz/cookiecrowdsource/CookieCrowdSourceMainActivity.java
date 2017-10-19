@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -13,7 +14,6 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 
 import com.google.android.gms.wallet.Cart;
 import com.stripe.wrap.pay.AndroidPayConfiguration;
@@ -31,7 +31,9 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import shinzzerz.io.CookieIO;
+import shinzzerz.location.DistTypeEnum;
 import shinzzerz.location.GetCurrentLocation;
+import shinzzerz.location.SimpleDistance;
 import shinzzerz.location.SimpleLocation;
 import shinzzerz.restapi.CookieAPI;
 import shinzzerz.stripe.PaymentActivity;
@@ -45,6 +47,8 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
 //    protected @BindView(R.id.main_layout)
 //    RelativeLayout mainActivity;
 
+    private static final double CDC_LAT = 39.691483;
+    private static final double CDC_LONG = -84.101717;
     private static final String PUBLISHABLE_KEY = "pk_test_tAMChOZmT4OHrVNyhGvJmuLH";
     private GetCurrentLocation myLocation = new GetCurrentLocation();
 
@@ -55,6 +59,9 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
 
     @BindView(R.id.first_dozen_free_image)
     ImageView firstDozenImage;
+
+    @BindView(R.id.main_layout_test_button)
+    Button myButton;
 
     @Override
     public void onCreate(Bundle savedInstance) {
@@ -211,13 +218,31 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
         } else if (!myLocation.isLocationOn(this)) {
             getCookiesButton.setText("Turn location on!");
         } else {
-            double distanceInMeters = myLocation.getDistanceInMeters(this, new SimpleLocation(R.string.CDC_lat, R.string.CDC_long));
-            double distanceInMiles = distanceInMeters / 1600;
-            if ((int) Math.ceil(distanceInMiles) > 5) {
+            SimpleDistance mySimpleDistance = new SimpleDistance();
+            myLocation.getDistanceInMeters(this, new SimpleLocation(CDC_LAT, CDC_LONG), mySimpleDistance);
+            (new onLocationAcquired()).execute(mySimpleDistance);
+        }
+    }
 
-            } else {
+    private class onLocationAcquired extends AsyncTask<SimpleDistance, Void, Void> {
+        private SimpleDistance dist;
 
+        @Override
+        protected Void doInBackground(SimpleDistance... params) {
+            dist = params[0];
+
+            while (!myLocation.isLocationInitialized()) {
+                //wait
             }
+
+            return null; //Return is necessary to explicitly notify that the doInBackground is done.
+        }
+
+        @Override
+        protected void onPostExecute(Void params) {
+            int distance = (int) Math.ceil(dist.getDistance(DistTypeEnum.Miles));
+
+            myButton.setText("Distance: " + distance);
         }
     }
 }
