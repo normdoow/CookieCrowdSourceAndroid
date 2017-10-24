@@ -19,10 +19,9 @@ import com.google.android.gms.wallet.Cart;
 import com.stripe.wrap.pay.AndroidPayConfiguration;
 import com.stripe.wrap.pay.utils.CartManager;
 
-import butterknife.BindView;
-
 import java.io.IOException;
 
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import okhttp3.ResponseBody;
@@ -36,6 +35,7 @@ import shinzzerz.location.GetCurrentLocation;
 import shinzzerz.location.SimpleDistance;
 import shinzzerz.location.SimpleLocation;
 import shinzzerz.restapi.CookieAPI;
+import shinzzerz.stripe.KeyKt;
 import shinzzerz.stripe.PaymentActivity;
 import shinzzerz.stripe.StoreUtils;
 
@@ -49,7 +49,6 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
 
     private static final double CDC_LAT = 39.691483;
     private static final double CDC_LONG = -84.101717;
-    private static final String PUBLISHABLE_KEY = "pk_test_tAMChOZmT4OHrVNyhGvJmuLH";
     private GetCurrentLocation myLocation = new GetCurrentLocation();
 
     CookieAPI cookieAPI;
@@ -137,7 +136,7 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
 
     private void initAndroidPay() {
         AndroidPayConfiguration payConfiguration =
-                AndroidPayConfiguration.init(PUBLISHABLE_KEY, "USD");
+                AndroidPayConfiguration.init(KeyKt.getPUBLISHABLE_KEY(), "USD");
         payConfiguration.setPhoneNumberRequired(false);
         payConfiguration.setShippingAddressRequired(true);
     }
