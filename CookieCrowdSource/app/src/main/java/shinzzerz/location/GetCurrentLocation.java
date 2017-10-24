@@ -161,6 +161,16 @@ public class GetCurrentLocation {
     }
 
     /**
+     * The purpose of this function is to turn off the gps acquring signal.
+     */
+    public void stopLoadingLocation(){
+        if(isLocationFoundNSet.availablePermits() <= 0){
+            isLocationFoundNSet.release();
+        }
+        myLocationManager.removeUpdates(myLocationListener);
+    }
+
+    /**
      * Will return the distance from simpleLocation and the current location.
      * This function will not do any permission or location GPS checks.
      *

@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -50,10 +51,12 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
     private static final double CDC_LAT = 39.691483;
     private static final double CDC_LONG = -84.101717;
     private GetCurrentLocation myLocation = new GetCurrentLocation();
+    private boolean obtainedLocation = false;
+    private long timeBeforeLocationTimeout = 30000;
+    private boolean cookiesAvailable = false;
 
     CookieAPI cookieAPI;
     @BindView(R.id.main_layout_get_cookies_button)
-
     Button getCookiesButton;
 
     @BindView(R.id.first_dozen_free_image)
@@ -84,28 +87,28 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
         cookieAPI = retrofit.create(CookieAPI.class);
 
         apiCalls();
-
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        setupLocation();
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        setupLocation();
         if (CookieIO.hasBoughtCookies(this)) {
             firstDozenImage.setVisibility(View.GONE);
         }
+    }
+
+    @Override
+    public void onPause(){
+        super.onPause();
+        obtainedLocation = false;
     }
 
     @OnClick(R.id.ingredients_button)
     public void clickIngreditentsButton() {
         AlertDialog alertDialog = new AlertDialog.Builder(this).create();
         alertDialog.setTitle("Ingredients");
-        alertDialog.setMessage("Unsalted butter, sugar, brown sugar, eggs, flour, ground oats, semisweet chocolate chips, vanilla, salt, baking powder, baking soda");
+        alertDialog.setMessage(getResources().getString(R.string.ingredients));
         alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
@@ -113,25 +116,6 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
                     }
                 });
         alertDialog.show();
-    }
-
-    @OnClick(R.id.main_layout_get_cookies_button)
-    public void onGetCookiesClicked(Button button) {
-        if (!myLocation.isLocationPermAvailable(this)) {
-            myLocation.turnLocationPermOn(this, false);
-        } else if (!myLocation.isLocationOn(this)) {
-            myLocation.turnLocationOn(this, false);
-        } else {
-            CartManager cartManager = new CartManager();
-            cartManager.addLineItem(StoreUtils.getEmojiByUnicode(0x1F36A), (double) 1, 1000);
-            try {
-                Cart cart = cartManager.buildCart();
-                Intent paymentLaunchIntent = PaymentActivity.createIntent(this, cart);
-                startActivity(paymentLaunchIntent);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     private void initAndroidPay() {
@@ -146,18 +130,16 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
         callCookAvailable.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                boolean isCookAvailable = false;
                 try {
-                    isCookAvailable = response.body().string().equals("True");
+                    cookiesAvailable = response.body().string().equals("True");
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    cookiesAvailable = false;
                 }
-                System.out.println();
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
-                System.out.println();
+                cookiesAvailable = false;
             }
         });
 
@@ -216,22 +198,51 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
             myLocation.turnLocationPermOn(this, false);
         } else if (!myLocation.isLocationOn(this)) {
             getCookiesButton.setText("Turn location on!");
-        } else {
+        }
+        else if(!obtainedLocation) {
             SimpleDistance mySimpleDistance = new SimpleDistance();
             myLocation.getDistanceInMeters(this, new SimpleLocation(CDC_LAT, CDC_LONG), mySimpleDistance);
-            (new onLocationAcquired()).execute(mySimpleDistance);
+            (new onLocationAcquired()).execute(mySimpleDistance, this);
         }
     }
 
-    private class onLocationAcquired extends AsyncTask<SimpleDistance, Void, Void> {
+    private class onLocationAcquired extends AsyncTask<Object, Void, Void> {
         private SimpleDistance dist;
+        private onLocationAcquired onALocationAcquired;
+        private CookieCrowdSourceMainActivity cookieCrowdSourceMainActivity;
+
+        //This preExecute will start a timer to shut off this onLocationAcquired
+        @Override
+        protected void onPreExecute() {
+            onALocationAcquired = this;
+
+            new CountDownTimer(timeBeforeLocationTimeout, 7000) {
+                public void onTick(long millisUntilFinished) {
+                    // You can monitor the progress here as well by changing the onTick() time
+                }
+                public void onFinish() {
+                    // stop async task if not in progress
+                    if (onALocationAcquired.getStatus() == AsyncTask.Status.RUNNING) {
+                        onALocationAcquired.cancel(true);
+                        // Add any specific task you wish to do as your extended class variable works here as well.
+                    }
+                }
+            }.start();
+        }
 
         @Override
-        protected Void doInBackground(SimpleDistance... params) {
-            dist = params[0];
+        protected Void doInBackground(Object... params) {
+            dist = (SimpleDistance)params[0];
+            cookieCrowdSourceMainActivity = (CookieCrowdSourceMainActivity)params[1];
 
-            while (!myLocation.isLocationInitialized()) {
+            //spinlock this thread
+            while (!myLocation.isLocationInitialized() && !isCancelled()) {
                 //wait
+            }
+
+            if(isCancelled()){//This will only be true if a timeout occurred after 30 seconds on location
+                outsideLocation();
+                myLocation.stopLoadingLocation();
             }
 
             return null; //Return is necessary to explicitly notify that the doInBackground is done.
@@ -239,9 +250,74 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Void params) {
+            obtainedLocation = true;
             int distance = (int) Math.ceil(dist.getDistance(DistTypeEnum.Miles));
-
             myButton.setText("Distance: " + distance);
+
+            apiCalls();
+
+
+            //Do cookie logic!
+            if(distance >= 400 && !cookiesAvailable){
+                outsideLocationAndNoCookies();
+            }
+            else if(distance >= 400 && cookiesAvailable){
+                outsideLocation();
+            }else if(distance <= 359 && !cookiesAvailable){
+                noCookies();
+            }
+            else{
+                haveCookies();
+            }
+
+        }
+
+        private void outsideLocationAndNoCookies(){
+            getCookiesButton.setText("Why can't I get cookies?");
+            getCookiesButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                }
+            });
+        }
+
+        private void outsideLocation(){
+            getCookiesButton.setText("Why can't I get cookies?");
+            getCookiesButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                }
+            });
+        }
+
+        private void noCookies(){
+            getCookiesButton.setText("Why can't I get cookies?");
+            getCookiesButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                }
+            });
+        }
+
+        private void haveCookies(){
+            getCookiesButton.setText("Get Cookies!");
+            getCookiesButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    CartManager cartManager = new CartManager();
+                    cartManager.addLineItem(StoreUtils.getEmojiByUnicode(0x1F36A), (double) 1, 1000);
+                    try {
+                        Cart cart = cartManager.buildCart();
+                        Intent paymentLaunchIntent = PaymentActivity.createIntent(cookieCrowdSourceMainActivity, cart);
+                        startActivity(paymentLaunchIntent);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
         }
     }
 }

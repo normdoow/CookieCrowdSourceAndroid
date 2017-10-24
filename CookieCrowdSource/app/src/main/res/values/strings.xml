@@ -12,6 +12,7 @@
     <string name="purchase_successful">Your purchase was a success!</string>
     <string name="total">Total</string>
     <string name="or">or</string>
+    <string name="ingredients">Unsalted butter, sugar, brown sugar, eggs, flour, ground oats, semisweet chocolate chips, vanilla, salt, baking powder, baking soda</string>
 
 
     <item name="CDC_lat" format="float" type="dimen">39.691483</item>
