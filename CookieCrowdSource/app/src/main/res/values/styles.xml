@@ -5,7 +5,7 @@
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorAccent">@color/colorMainActivityTitleBarText</item>
     </style>
 
     <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar">
@@ -21,9 +21,10 @@
     </style>
 
     <style name="CustomButton" parent="Widget.AppCompat.Button.Colored">
-        <item name="android:minHeight">64dip</item>
+        <item name="android:minHeight">50dip</item>
         <item name="android:paddingRight">24dp</item>
         <item name="android:paddingLeft">24dp</item>
+        <item name="android:colorBackground">@color/colorMainActivityTitleBarText</item>
     </style>
 
     <style name="EmojiStyle" parent="TextAppearance.AppCompat.Headline">

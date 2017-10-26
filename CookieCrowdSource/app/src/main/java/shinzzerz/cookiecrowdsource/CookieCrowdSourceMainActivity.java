@@ -13,10 +13,12 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 
 import com.google.android.gms.wallet.Cart;
 import com.stripe.wrap.pay.AndroidPayConfiguration;
 import com.stripe.wrap.pay.utils.CartManager;
+import com.wang.avi.AVLoadingIndicatorView;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -65,6 +67,12 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
     @BindView(R.id.first_dozen_free_image)
     ImageView firstDozenImage;
 
+    @BindView(R.id.pacman_loading)
+    AVLoadingIndicatorView pacmanLoader;
+
+    @BindView(R.id.pacman_container)
+    RelativeLayout pacmanContainer;
+
     @Override
     public void onCreate(Bundle savedInstance) {
         super.onCreate(savedInstance);
@@ -100,6 +108,8 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
                     setupLocation();
                 }
             });
+        showLoadingPacMan();
+
     }
 
     @Override
@@ -116,6 +126,18 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
         super.onPause();
         myLocation.stopLoadingLocation();
         obtainedLocation = false;
+    }
+
+    private void showLoadingPacMan() {
+        pacmanContainer.setVisibility(View.VISIBLE);
+        getCookiesButton.setVisibility(View.GONE);
+        pacmanLoader.show();
+    }
+
+    private void hideLoadingPacMan() {
+        pacmanLoader.hide();
+        pacmanContainer.setVisibility(View.GONE);
+        getCookiesButton.setVisibility(View.VISIBLE);
     }
 
     @OnClick(R.id.ingredients_button)
@@ -216,9 +238,9 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
         else if(!obtainedLocation) {
             SimpleDistance mySimpleDistance = new SimpleDistance();
             myLocation.getDistanceInMeters(this, new SimpleLocation(CDC_LAT, CDC_LONG), mySimpleDistance);
-
             updateButtonBasedOnCookieLogic(mySimpleDistance);
         }
+        pacmanLoader.show();
     }
 
     private void updateButtonBasedOnCookieLogic(SimpleDistance dist) {
