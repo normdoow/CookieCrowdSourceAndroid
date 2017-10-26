@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.annotation.MainThread;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -19,6 +20,7 @@ import com.stripe.wrap.pay.AndroidPayConfiguration;
 import com.stripe.wrap.pay.utils.CartManager;
 
 import java.io.IOException;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
@@ -30,8 +32,11 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import rx.Observable;
+import rx.Scheduler;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import rx.schedulers.Schedulers;
 import shinzzerz.io.CookieIO;
 import shinzzerz.location.DistTypeEnum;
 import shinzzerz.location.GetCurrentLocation;
@@ -64,6 +69,7 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
 
     @BindView(R.id.first_dozen_free_image)
     ImageView firstDozenImage;
+    private Subscription mySubscription;
 
     @Override
     public void onCreate(Bundle savedInstance) {
@@ -89,32 +95,36 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
 
         apiCalls();
 
-        //run async task that checks for location and api calls every 20 seconds to udpate the view
-        Observable.interval(20, TimeUnit.SECONDS)
-            .subscribeOn(AndroidSchedulers.mainThread())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(new Action1<Long>() {
-                @Override
-                public void call(Long aLong) {
-                    apiCalls();
-                    setupLocation();
-                }
-            });
+
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        setupLocation();
+
+        //run async task that checks for location and api calls every 20 seconds to udpate the view
+        mySubscription = Observable.interval(20, TimeUnit.SECONDS).startWith((long) 0)
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Long>() {
+                    @Override
+                    public void call(Long aLong) {
+                        apiCalls();
+                        setupLocation();
+                    }
+                });
         if (CookieIO.hasBoughtCookies(this)) {
             firstDozenImage.setVisibility(View.GONE);
         }
     }
 
     @Override
-    public void onPause(){
+    public void onPause() {
         super.onPause();
         myLocation.stopLoadingLocation();
+        if (mySubscription != null && !mySubscription.isUnsubscribed()) {
+            mySubscription.unsubscribe();
+        }
         obtainedLocation = false;
     }
 
@@ -212,12 +222,25 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
             myLocation.turnLocationPermOn(this, false);
         } else if (!myLocation.isLocationOn(this)) {
             getCookiesButton.setText("Turn location on!");
-        }
-        else if(!obtainedLocation) {
-            SimpleDistance mySimpleDistance = new SimpleDistance();
+            myLocation.turnLocationOn(this, true);
+        } else if (!obtainedLocation) {
+            final SimpleDistance mySimpleDistance = new SimpleDistance();
             myLocation.getDistanceInMeters(this, new SimpleLocation(CDC_LAT, CDC_LONG), mySimpleDistance);
 
-            updateButtonBasedOnCookieLogic(mySimpleDistance);
+            Observable.fromCallable(new Callable<Void>() {
+                @Override
+                public Void call() throws Exception {
+                    while (!myLocation.isLocationInitialized()) {
+
+                    }
+                    return null;
+                }
+            }).subscribe(new Action1<Void>() {
+                @Override
+                public void call(Void aVoid) {
+                    updateButtonBasedOnCookieLogic(mySimpleDistance);
+                }
+            });
         }
     }
 
@@ -225,20 +248,18 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
         int distance = (int) Math.ceil(dist.getDistance(DistTypeEnum.Miles));
 
         //Do cookie logic!
-        if(distance >= 400 && !cookiesAvailable){
+        if (distance >= 400 && !cookiesAvailable) {
             outsideLocationAndNoCookies();
-        }
-        else if(distance >= 400 && cookiesAvailable){
+        } else if (distance >= 400 && cookiesAvailable) {
             outsideLocation();
-        }else if(distance <= 359 && !cookiesAvailable){
+        } else if (distance <= 359 && !cookiesAvailable) {
             noCookies();
-        }
-        else{
+        } else {
             haveCookies();
         }
     }
 
-    private void outsideLocationAndNoCookies(){
+    private void outsideLocationAndNoCookies() {
         getCookiesButton.setText("Why can't I get cookies?");
         getCookiesButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -257,7 +278,7 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
         });
     }
 
-    private void outsideLocation(){
+    private void outsideLocation() {
         getCookiesButton.setText("Why can't I get cookies?");
         getCookiesButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -276,7 +297,7 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
         });
     }
 
-    private void noCookies(){
+    private void noCookies() {
         getCookiesButton.setText("Why can't I get cookies?");
         getCookiesButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -295,7 +316,7 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
         });
     }
 
-    private void haveCookies(){
+    private void haveCookies() {
         getCookiesButton.setText("Get Cookies!");
         getCookiesButton.setOnClickListener(new View.OnClickListener() {
             @Override
