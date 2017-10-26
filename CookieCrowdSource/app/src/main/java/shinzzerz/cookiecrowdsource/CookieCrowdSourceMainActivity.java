@@ -54,6 +54,7 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
     private boolean obtainedLocation = false;
     private long timeBeforeLocationTimeout = 30000;
     private boolean cookiesAvailable = false;
+    private Context context;
 
     CookieAPI cookieAPI;
     @BindView(R.id.main_layout_get_cookies_button)
@@ -62,14 +63,12 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
     @BindView(R.id.first_dozen_free_image)
     ImageView firstDozenImage;
 
-    @BindView(R.id.main_layout_test_button)
-    Button myButton;
-
     @Override
     public void onCreate(Bundle savedInstance) {
         super.onCreate(savedInstance);
         //eventually do some application specific loading
         //depending on app & user state
+        context = this;
 
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         LinearLayout mainActivity;
@@ -222,7 +221,7 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
                 }
                 public void onFinish() {
                     // stop async task if not in progress
-                    if (onALocationAcquired.getStatus() == AsyncTask.Status.RUNNING) {
+                    if (onALocationAcquired.getStatus() == Status.RUNNING) {
                         onALocationAcquired.cancel(true);
                         // Add any specific task you wish to do as your extended class variable works here as well.
                     }
@@ -252,7 +251,7 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
         protected void onPostExecute(Void params) {
             obtainedLocation = true;
             int distance = (int) Math.ceil(dist.getDistance(DistTypeEnum.Miles));
-            myButton.setText("Distance: " + distance);
+//            myButton.setText("Distance: " + distance);
 
             apiCalls();
 
@@ -277,7 +276,16 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
             getCookiesButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
+                    AlertDialog alertDialog = new AlertDialog.Builder(context).create();
+                    alertDialog.setTitle("Wrong Location and No Cookies");
+                    alertDialog.setMessage("There are no cooks that are making cookies currently. Try again in the evening from 5pm to 9pm. There is more chance that we will be making cookies then! You also must be in a location that is in a 5 mile radius around the Greene to be able to order cookies. Thank you for your patience while we are getting this new business idea up and running!");
+                    alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "Ok",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            });
+                    alertDialog.show();
                 }
             });
         }
@@ -287,7 +295,16 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
             getCookiesButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
+                    AlertDialog alertDialog = new AlertDialog.Builder(context).create();
+                    alertDialog.setTitle("Wrong Location");
+                    alertDialog.setMessage("You must be in a location that is in a 5 mile radius from the Greene for you to be able to order cookies. We will hopefully be coming to a location closer to you soon! Thank you for your patience while we are getting this new business idea up and running!");
+                    alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "Ok",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                                }
+                            });
+                    alertDialog.show();
                 }
             });
         }
@@ -297,7 +314,16 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
             getCookiesButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
+                    AlertDialog alertDialog = new AlertDialog.Builder(context).create();
+                    alertDialog.setTitle("No Cookies");
+                    alertDialog.setMessage("There are no cooks that are making cookies currently. Try again in the evening from 5pm to 9pm. There is more chance that we will be making cookies then! Thank you for your patience while we are getting this new business idea up and running!");
+                    alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "Ok",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            });
+                    alertDialog.show();
                 }
             });
         }
