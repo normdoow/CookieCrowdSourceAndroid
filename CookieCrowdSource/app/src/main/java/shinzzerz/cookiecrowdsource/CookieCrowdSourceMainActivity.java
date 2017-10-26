@@ -114,6 +114,7 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
     @Override
     public void onPause(){
         super.onPause();
+        myLocation.stopLoadingLocation();
         obtainedLocation = false;
     }
 
