@@ -167,7 +167,9 @@ public class GetCurrentLocation {
         if(isLocationFoundNSet.availablePermits() <= 0){
             isLocationFoundNSet.release();
         }
-        myLocationManager.removeUpdates(myLocationListener);
+        if(myLocationManager != null && myLocationListener != null){
+            myLocationManager.removeUpdates(myLocationListener);
+        }
     }
 
     /**
