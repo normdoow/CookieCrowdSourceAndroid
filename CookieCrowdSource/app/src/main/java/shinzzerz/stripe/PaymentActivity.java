@@ -318,6 +318,7 @@ public class PaymentActivity extends AppCompatActivity {
                     }
                 });
         alertDialog.show();
+        mProgressDialogFragment.dismiss();
     }
 
     private void finishCharge() {
