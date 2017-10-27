@@ -6,7 +6,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.annotation.MainThread;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -22,7 +21,6 @@ import com.stripe.wrap.pay.utils.CartManager;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import java.io.IOException;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
@@ -34,7 +32,6 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import rx.Observable;
-import rx.Scheduler;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -52,18 +49,17 @@ import shinzzerz.stripe.StoreUtils;
 /**
  * Created by administratorz on 9/2/2017.
  */
-
 public class CookieCrowdSourceMainActivity extends AppCompatActivity {
-//    protected @BindView(R.id.main_layout)
-//    RelativeLayout mainActivity;
-
     private static final double CDC_LAT = 39.691483;
     private static final double CDC_LONG = -84.101717;
+    private static final int DISTANCE_RADIUS_FROM_CDC = 400;
+
     private GetCurrentLocation myLocation = new GetCurrentLocation();
     private boolean obtainedLocation = false;
-    private long timeBeforeLocationTimeout = 30000;
     private boolean cookiesAvailable = false;
     private Context context;
+    private Subscription intervalSubscription;
+    private Subscription locationSubscription;
 
     CookieAPI cookieAPI;
     @BindView(R.id.main_layout_get_cookies_button)
@@ -71,7 +67,7 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
 
     @BindView(R.id.first_dozen_free_image)
     ImageView firstDozenImage;
-    private Subscription mySubscription;
+
 
     @BindView(R.id.pacman_loading)
     AVLoadingIndicatorView pacmanLoader;
@@ -100,17 +96,14 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
                 .build();
 
         cookieAPI = retrofit.create(CookieAPI.class);
-
-        apiCalls();
-
     }
 
     @Override
     public void onResume() {
         super.onResume();
 
-        //run async task that checks for location and api calls every 20 seconds to udpate the view
-        mySubscription = Observable.interval(20, TimeUnit.SECONDS).startWith((long) 0)
+        //run async task that checks for location and api calls every 20 seconds to update the view
+        intervalSubscription = Observable.interval(20, TimeUnit.SECONDS).startWith((long) 0)
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Long>() {
@@ -129,22 +122,14 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
     public void onPause() {
         super.onPause();
         myLocation.stopLoadingLocation();
-        if (mySubscription != null && !mySubscription.isUnsubscribed()) {
-            mySubscription.unsubscribe();
+        if (intervalSubscription != null && !intervalSubscription.isUnsubscribed()) {
+            intervalSubscription.unsubscribe();
         }
+        if(locationSubscription != null && !locationSubscription.isUnsubscribed()){
+            locationSubscription.unsubscribe();
+        }
+        hideLoadingPacMan();
         obtainedLocation = false;
-    }
-
-    private void showLoadingPacMan() {
-        pacmanContainer.setVisibility(View.VISIBLE);
-        getCookiesButton.setVisibility(View.GONE);
-        pacmanLoader.show();
-    }
-
-    private void hideLoadingPacMan() {
-        pacmanLoader.hide();
-        pacmanContainer.setVisibility(View.GONE);
-        getCookiesButton.setVisibility(View.VISIBLE);
     }
 
     @OnClick(R.id.ingredients_button)
@@ -159,53 +144,6 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
                     }
                 });
         alertDialog.show();
-    }
-
-    private void initAndroidPay() {
-        AndroidPayConfiguration payConfiguration =
-                AndroidPayConfiguration.init(KeyKt.getPUBLISHABLE_KEY(), "USD");
-        payConfiguration.setPhoneNumberRequired(false);
-        payConfiguration.setShippingAddressRequired(true);
-    }
-
-    private void apiCalls() {
-        Call<ResponseBody> callCookAvailable = cookieAPI.isCookAvailable();
-        callCookAvailable.enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                try {
-                    cookiesAvailable = response.body().string().equals("True");
-                } catch (IOException e) {
-                    cookiesAvailable = false;
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-                cookiesAvailable = false;
-            }
-        });
-
-        if (CookieIO.getCustomerId(this) == null) {      //create a new customer only if there isn't one already
-            final Context con = this;
-            Call<ResponseBody> callCreateCustomer = cookieAPI.createCustomer();
-            callCreateCustomer.enqueue(new Callback<ResponseBody>() {
-                @Override
-                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                    try {
-                        CookieIO.setCustomerId(con, response.body().string());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    System.out.println();
-                }
-
-                @Override
-                public void onFailure(Call<ResponseBody> call, Throwable t) {
-                    System.out.println();
-                }
-            });
-        }
     }
 
     @Override
@@ -234,6 +172,7 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
      * The purpose of this function is to get the location if:
      * 1. Permissions are available.
      * 2. Location is turned on
+     * 3. Then find the location based off of an Observer
      */
     private void setupLocation() {
         if (!myLocation.isLocationPermAvailable(this)) {
@@ -243,36 +182,25 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
             getCookiesButton.setText("Turn location on!");
             myLocation.turnLocationOn(this, true);
         } else if (!obtainedLocation) {
-            final SimpleDistance mySimpleDistance = new SimpleDistance();
-            myLocation.getDistanceInMeters(this, new SimpleLocation(CDC_LAT, CDC_LONG), mySimpleDistance);
+            showLoadingPacMan();
+            SimpleDistance distanceAwayFromCdc = new SimpleDistance();
+            Observable<SimpleDistance> observable = myLocation.getDistanceInMeters(this, new SimpleLocation(CDC_LAT, CDC_LONG), distanceAwayFromCdc);
 
-            Observable.fromCallable(new Callable<Void>() {
-                @Override
-                public Void call() throws Exception {
-                    while (!myLocation.isLocationInitialized()) {
-
-                    }
-                    return null;
-                }
-            }).subscribe(new Action1<Void>() {
-                @Override
-                public void call(Void aVoid) {
-                    updateButtonBasedOnCookieLogic(mySimpleDistance);
-                }
-            });
+            locationSubscription = observable.subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread()).subscribe((Void) -> updateButtonBasedOnCookieLogic(distanceAwayFromCdc));
         }
-        pacmanLoader.show();
     }
 
     private void updateButtonBasedOnCookieLogic(SimpleDistance dist) {
         int distance = (int) Math.ceil(dist.getDistance(DistTypeEnum.Miles));
 
+        hideLoadingPacMan();
+
         //Do cookie logic!
-        if (distance >= 400 && !cookiesAvailable) {
+        if (distance > DISTANCE_RADIUS_FROM_CDC && !cookiesAvailable) {
             outsideLocationAndNoCookies();
-        } else if (distance >= 400 && cookiesAvailable) {
+        } else if (distance > DISTANCE_RADIUS_FROM_CDC && cookiesAvailable) {
             outsideLocation();
-        } else if (distance <= 359 && !cookiesAvailable) {
+        } else if (distance <= DISTANCE_RADIUS_FROM_CDC && !cookiesAvailable) {
             noCookies();
         } else {
             haveCookies();
@@ -352,5 +280,67 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void showLoadingPacMan() {
+        pacmanContainer.setVisibility(View.VISIBLE);
+        getCookiesButton.setVisibility(View.GONE);
+        pacmanLoader.show();
+    }
+
+    private void hideLoadingPacMan() {
+        pacmanLoader.hide();
+        pacmanContainer.setVisibility(View.GONE);
+        getCookiesButton.setVisibility(View.VISIBLE);
+    }
+
+    private void initAndroidPay() {
+        AndroidPayConfiguration payConfiguration =
+                AndroidPayConfiguration.init(KeyKt.getPUBLISHABLE_KEY(), "USD");
+        payConfiguration.setPhoneNumberRequired(false);
+        payConfiguration.setShippingAddressRequired(true);
+    }
+
+    /**
+     * This function starts the calls to determine if a cookie is available.
+     */
+    private void apiCalls() {
+        Call<ResponseBody> callCookAvailable = cookieAPI.isCookAvailable();
+        callCookAvailable.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                try {
+                    cookiesAvailable = response.body().string().equals("True");
+                } catch (IOException e) {
+                    cookiesAvailable = false;
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                cookiesAvailable = false;
+            }
+        });
+
+        if (CookieIO.getCustomerId(this) == null) {      //create a new customer only if there isn't one already
+            final Context con = this;
+            Call<ResponseBody> callCreateCustomer = cookieAPI.createCustomer();
+            callCreateCustomer.enqueue(new Callback<ResponseBody>() {
+                @Override
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                    try {
+                        CookieIO.setCustomerId(con, response.body().string());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    System.out.println();
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                    System.out.println();
+                }
+            });
+        }
     }
 }

@@ -8,7 +8,6 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
@@ -19,6 +18,7 @@ import android.widget.Toast;
 
 import java.util.concurrent.Semaphore;
 
+import rx.Observable;
 import shinzzerz.cookiecrowdsource.R;
 
 import static android.content.Context.LOCATION_SERVICE;
@@ -26,7 +26,6 @@ import static android.content.Context.LOCATION_SERVICE;
 /**
  * Created by administratorz on 9/10/2017.
  */
-
 public class GetCurrentLocation {
     public static final int LOCATION_PERM_REQUEST = 0;
 
@@ -121,7 +120,7 @@ public class GetCurrentLocation {
         } else {
             AlertDialog.Builder dialog = new AlertDialog.Builder(callingActivity);
             dialog.setMessage(R.string.turn_on_location_description);
-            dialog.setPositiveButton(callingActivity.getResources().getString(R.string.turn_on_location_description), new DialogInterface.OnClickListener() {
+            dialog.setPositiveButton("ok", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface paramDialogInterface, int paramInt) {
                     Intent myIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
@@ -163,11 +162,11 @@ public class GetCurrentLocation {
     /**
      * The purpose of this function is to turn off the gps acquring signal.
      */
-    public void stopLoadingLocation(){
-        if(isLocationFoundNSet.availablePermits() <= 0){
+    public void stopLoadingLocation() {
+        if (isLocationFoundNSet.availablePermits() <= 0) {
             isLocationFoundNSet.release();
         }
-        if(myLocationManager != null && myLocationListener != null){
+        if (myLocationManager != null && myLocationListener != null) {
             myLocationManager.removeUpdates(myLocationListener);
         }
     }
@@ -177,42 +176,30 @@ public class GetCurrentLocation {
      * This function will not do any permission or location GPS checks.
      *
      * @param callingActivity
-     * @param simpleLocation
+     * @param locationToMeasureFrom
      * @return
      */
-    public void getDistanceInMeters(Activity callingActivity, SimpleLocation simpleLocation, SimpleDistance distance) {
+    public Observable<SimpleDistance> getDistanceInMeters(Activity callingActivity, SimpleLocation locationToMeasureFrom, SimpleDistance distance) {
         SimpleLocation mySimpleLocation = new SimpleLocation();
         getLocation(callingActivity, false, mySimpleLocation);
-        (new onLocationAqcuired()).execute(distance, simpleLocation);
-    }
 
-    public boolean isLocationInitialized(){
-        return isLocationFoundNSet.availablePermits() > 0;
-    }
-
-    private class onLocationAqcuired extends AsyncTask<Object, Void, Void> {
-        private SimpleDistance dist;
-        private SimpleLocation simpleLocation;
-
-        @Override
-        protected Void doInBackground(Object... params) {
-            dist = (SimpleDistance)params[0];
-            simpleLocation = (SimpleLocation)params[1];
-
-            while (isLocationFoundNSet.availablePermits() < 1){
+        return Observable.defer(() ->
+        {
+            while (isLocationFoundNSet.availablePermits() < 1) {
                 //wait
             }
 
-            return null; //Return is necessary to explicitly notify that the doInBackground is done.
-        }
-
-        @Override
-        protected void onPostExecute(Void params) {
             float[] results = new float[1];
-            Location.distanceBetween(aLocation.getLat(), aLocation.getLong(), simpleLocation.getLat(), simpleLocation.getLong(), results);
+            Location.distanceBetween(aLocation.getLat(), aLocation.getLong(), locationToMeasureFrom.getLat(), locationToMeasureFrom.getLong(), results);
 
-            dist.setDistance(results[0], DistTypeEnum.Meters);
-        }
+            distance.setDistance(results[0], DistTypeEnum.Meters);
+
+            return Observable.just(distance);
+        });
+    }
+
+    public boolean isLocationInitialized() {
+        return isLocationFoundNSet.availablePermits() > 0;
     }
 }
 
