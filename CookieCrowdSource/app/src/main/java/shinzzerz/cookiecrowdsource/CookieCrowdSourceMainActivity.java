@@ -103,7 +103,8 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
         super.onResume();
 
         //run async task that checks for location and api calls every 20 seconds to update the view
-        intervalSubscription = Observable.interval(20, TimeUnit.SECONDS).startWith((long) 0)
+        intervalSubscription = Observable.interval(20, TimeUnit.SECONDS)
+                .startWith((long) 0)
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Long>() {
@@ -186,7 +187,9 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
             SimpleDistance distanceAwayFromCdc = new SimpleDistance();
             Observable<SimpleDistance> observable = myLocation.getDistanceInMeters(this, new SimpleLocation(CDC_LAT, CDC_LONG), distanceAwayFromCdc);
 
-            locationSubscription = observable.subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread()).subscribe((Void) -> updateButtonBasedOnCookieLogic(distanceAwayFromCdc));
+            locationSubscription = observable.subscribeOn(Schedulers.newThread())
+                                            .observeOn(AndroidSchedulers.mainThread())
+                                            .subscribe((Void) -> updateButtonBasedOnCookieLogic(distanceAwayFromCdc));
         }
     }
 
