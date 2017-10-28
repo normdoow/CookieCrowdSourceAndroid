@@ -1,0 +1,71 @@
+{
+  "project_info": {
+    "project_number": "674449838610",
+    "project_id": "crowd-cookie"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:674449838610:android:27497e363208aa66",
+        "android_client_info": {
+          "package_name": "CookieCrowdSource.shinzzerz"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "674449838610-7rb793do1rlhf2b37op5kn55t160bvpb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAB56hilBlfl2GQ0nGzImAmyTx0BOEamzI"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:674449838610:android:d4763e10e3b587e3",
+        "android_client_info": {
+          "package_name": "shinzzerz.cookiecrowdsource"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "674449838610-7rb793do1rlhf2b37op5kn55t160bvpb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAB56hilBlfl2GQ0nGzImAmyTx0BOEamzI"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

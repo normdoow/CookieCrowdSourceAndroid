@@ -62,8 +62,18 @@ dependencies {
     compile 'com.jakewharton:butterknife:8.8.1'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+
+    // for GCM services used for notifications
+    compile 'com.google.android.gms:play-services-gcm:11.0.4' // This version if often updated by Google Play Services.
+    //pusher
+    compile 'com.pusher:pusher-java-client:1.5.0'
+    compile 'com.pusher:pusher-websocket-android:0.6.0'
+
 }
 repositories {
     mavenCentral()
 }
+
+
+apply plugin: 'com.google.gms.google-services'
 

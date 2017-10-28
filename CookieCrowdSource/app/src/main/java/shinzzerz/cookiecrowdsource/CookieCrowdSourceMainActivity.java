@@ -15,7 +15,12 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.wallet.Cart;
+import com.pusher.android.PusherAndroid;
+import com.pusher.android.notifications.PushNotificationRegistration;
+import com.pusher.android.notifications.interests.InterestSubscriptionChangeListener;
 import com.stripe.wrap.pay.AndroidPayConfiguration;
 import com.stripe.wrap.pay.utils.CartManager;
 import com.wang.avi.AVLoadingIndicatorView;
@@ -36,13 +41,13 @@ import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
+import shinzzerz.KeyKt;
 import shinzzerz.io.CookieIO;
 import shinzzerz.location.DistTypeEnum;
 import shinzzerz.location.GetCurrentLocation;
 import shinzzerz.location.SimpleDistance;
 import shinzzerz.location.SimpleLocation;
 import shinzzerz.restapi.CookieAPI;
-import shinzzerz.stripe.KeyKt;
 import shinzzerz.stripe.PaymentActivity;
 import shinzzerz.stripe.StoreUtils;
 
@@ -53,6 +58,7 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
     private static final double CDC_LAT = 39.691483;
     private static final double CDC_LONG = -84.101717;
     private static final int DISTANCE_RADIUS_FROM_CDC = 5;
+    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 88;
 
     private GetCurrentLocation myLocation = new GetCurrentLocation();
     private boolean obtainedLocation = false;
@@ -96,6 +102,33 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
                 .build();
 
         cookieAPI = retrofit.create(CookieAPI.class);
+
+        //sign up for notifications
+        if (playServicesAvailable()) {
+            PusherAndroid pusher = new PusherAndroid(KeyKt.getPUSHER_APP_KEY());
+            PushNotificationRegistration nativePusher = pusher.nativePusher();
+
+            // pulled from your google-services.json
+            String defaultSenderId = getString(R.string.gcm_defaultSenderId);
+            try {
+                nativePusher.registerGCM(this, defaultSenderId);
+            } catch(Exception e) {
+                System.out.println(e);
+            }
+            nativePusher.subscribe("cook_available", new InterestSubscriptionChangeListener() {
+                @Override
+                public void onSubscriptionChangeSucceeded() {
+                    System.out.println("Success!");
+                }
+
+                @Override
+                public void onSubscriptionChangeFailed(int statusCode, String response) {
+                    System.out.println(":(: received " + statusCode + " with" + response);
+                }
+            });
+
+            // Ready to subscribe to topics!
+        }
     }
 
     @Override
@@ -299,7 +332,7 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
 
     private void initAndroidPay() {
         AndroidPayConfiguration payConfiguration =
-                AndroidPayConfiguration.init(KeyKt.getPUBLISHABLE_KEY(), "USD");
+                AndroidPayConfiguration.init(KeyKt.getSTRIPE_PUBLISHABLE_KEY(), "USD");
         payConfiguration.setPhoneNumberRequired(false);
         payConfiguration.setShippingAddressRequired(true);
     }
@@ -345,5 +378,21 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
                 }
             });
         }
+    }
+
+    //needed to check for push notifications
+    private boolean playServicesAvailable() {
+        GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
+        int resultCode = apiAvailability.isGooglePlayServicesAvailable(this);
+        if (resultCode != ConnectionResult.SUCCESS) {
+            if (apiAvailability.isUserResolvableError(resultCode)) {
+                apiAvailability.getErrorDialog(this, resultCode, PLAY_SERVICES_RESOLUTION_REQUEST)
+                        .show();
+            } else {
+                finish();
+            }
+            return false;
+        }
+        return true;
     }
 }
