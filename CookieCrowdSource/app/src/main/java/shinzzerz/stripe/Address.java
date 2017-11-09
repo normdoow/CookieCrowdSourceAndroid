@@ -77,6 +77,6 @@ public class Address {
     }
 
     public boolean isValidAddress() {
-        return !mCity.isEmpty() && !mCountry.isEmpty() && !mLine1.isEmpty() && !mLine2.isEmpty() && !mPostalCode.isEmpty() && !mState.isEmpty();
+        return !mCity.isEmpty() && !mCountry.isEmpty() && !mLine1.isEmpty() && !mPostalCode.isEmpty() && !mState.isEmpty();
     }
 }
