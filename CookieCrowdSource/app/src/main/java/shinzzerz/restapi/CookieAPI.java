@@ -26,6 +26,9 @@ public interface CookieAPI {
     @GET("is_cook_available")
     Call<ResponseBody> isCookAvailable();
 
+    @GET("is_isaiah_available")
+    Call<ResponseBody> isIsaiahAvailable();
+
     @GET("create_customer")
     Call<ResponseBody> createCustomer();
 

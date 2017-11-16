@@ -57,12 +57,15 @@ import shinzzerz.stripe.StoreUtils;
 public class CookieCrowdSourceMainActivity extends AppCompatActivity {
     private static final double CDC_LAT = 39.691483;
     private static final double CDC_LONG = -84.101717;
+    private static final double ISAIAH_LAT = 39.673647;
+    private static final double ISAIAH_LONG = 83.977037;
     private static final double DISTANCE_RADIUS_FROM_CDC = 3.5;
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 88;
 
     private GetCurrentLocation myLocation = new GetCurrentLocation();
     private boolean obtainedLocation = false;
-    private boolean cookiesAvailable = false;
+    private boolean noahAvailable = false;
+    private boolean isaiahAvailable = false;
     private Context context;
     private Subscription intervalSubscription;
     private Subscription locationSubscription;
@@ -218,26 +221,35 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
         } else if (!obtainedLocation) {
             showLoadingPacMan();
             SimpleDistance distanceAwayFromCdc = new SimpleDistance();
+            SimpleDistance distanceAwayFromIsaiah = new SimpleDistance();
+
             Observable<SimpleDistance> observable = myLocation.getDistanceInMeters(this, new SimpleLocation(CDC_LAT, CDC_LONG), distanceAwayFromCdc);
 
-            locationSubscription = observable.subscribeOn(Schedulers.newThread())
-                                            .observeOn(AndroidSchedulers.mainThread())
-                                            .subscribe((Void) -> updateButtonBasedOnCookieLogic(distanceAwayFromCdc));
+            Observable<SimpleDistance> observableIsaiah = myLocation.getDistanceInMeters(this, new SimpleLocation(ISAIAH_LAT, ISAIAH_LONG), distanceAwayFromIsaiah);
+
+            locationSubscription = Observable.concat(observable, observableIsaiah)
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe((Void) -> updateButtonBasedOnCookieLogic(distanceAwayFromCdc, distanceAwayFromIsaiah));
         }
     }
 
-    private void updateButtonBasedOnCookieLogic(SimpleDistance dist) {
-        int distance = (int) Math.ceil(dist.getDistance(DistTypeEnum.Miles));
+    private void updateButtonBasedOnCookieLogic(SimpleDistance dist, SimpleDistance dist2) {
+        int distNoah = (int) Math.ceil(dist.getDistance(DistTypeEnum.Miles));
+        int distIsaiah = (int) Math.ceil(dist2.getDistance(DistTypeEnum.Miles));
 
         hideLoadingPacMan();
 
+        boolean isNoahRightLocation = distNoah <= DISTANCE_RADIUS_FROM_CDC;
+        boolean isIsaiahRightLocation = distIsaiah <= DISTANCE_RADIUS_FROM_CDC;
+
         //Do cookie logic!
-        if (distance > DISTANCE_RADIUS_FROM_CDC && !cookiesAvailable) {
+        if (!noahAvailable && !isNoahRightLocation && !isaiahAvailable && !isIsaiahRightLocation) {
             outsideLocationAndNoCookies();
-        } else if (distance > DISTANCE_RADIUS_FROM_CDC && cookiesAvailable) {
-            outsideLocation();
-        } else if (distance <= DISTANCE_RADIUS_FROM_CDC && !cookiesAvailable) {
+        } else if ((!noahAvailable && isNoahRightLocation || !isaiahAvailable && isIsaiahRightLocation) && !(isIsaiahRightLocation && isNoahRightLocation)) {
             noCookies();
+        } else if (!isNoahRightLocation && !isIsaiahRightLocation) {
+            outsideLocation();
         } else {
             haveCookies();
         }
@@ -346,15 +358,32 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 try {
-                    cookiesAvailable = response.body().string().equals("True");
+                    noahAvailable = response.body().string().equals("True");
                 } catch (IOException e) {
-                    cookiesAvailable = false;
+                    noahAvailable = false;
                 }
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
-                cookiesAvailable = false;
+                noahAvailable = false;
+            }
+        });
+
+        Call<ResponseBody> callIsaiahAvailable = cookieAPI.isIsaiahAvailable();
+        callIsaiahAvailable.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                try {
+                    isaiahAvailable = response.body().string().equals("True");
+                } catch (IOException e) {
+                    isaiahAvailable = false;
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                isaiahAvailable = false;
             }
         });
 
