@@ -57,7 +57,7 @@ import shinzzerz.stripe.StoreUtils;
 public class CookieCrowdSourceMainActivity extends AppCompatActivity {
     private static final double CDC_LAT = 39.691483;
     private static final double CDC_LONG = -84.101717;
-    private static final int DISTANCE_RADIUS_FROM_CDC = 5;
+    private static final double DISTANCE_RADIUS_FROM_CDC = 3.5;
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 88;
 
     private GetCurrentLocation myLocation = new GetCurrentLocation();
