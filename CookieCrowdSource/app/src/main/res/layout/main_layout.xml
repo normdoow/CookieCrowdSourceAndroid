@@ -44,7 +44,7 @@
         android:layout_margin="16dp"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
-        android:text="How Crowd Cookie Works\n- Delicious, homemade chocolate chip cookies are made by your neighbors.\n\n- Get a Dozen cookies for $10. \n\n- They are delivered right to your door in around 30 minutes!\n\n- Crowd Cookie is in Beta and only available in some areas of Dayton, Ohio.\n\n- Click the “Get hot cookies” button below to get your warm, homemade cookies!"/>
+        android:text="How Crowd Cookie Works\n- Delicious, homemade chocolate chip cookies are made by your neighbors.\n\n- Get a Dozen cookies for $12. \n\n- They are delivered right to your door in around 40 minutes!\n\n- Crowd Cookie is in Beta and only available in some areas of Dayton, Ohio.\n\n- Click the “Get hot cookies” button below to get your warm, homemade Cookies!"/>
 
     <Button
         android:id="@+id/ingredients_button"

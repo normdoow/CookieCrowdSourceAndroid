@@ -18,7 +18,7 @@
             android:id="@+id/amount_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Get a Dozen Cookies for $10!"
+            android:text="Get a Dozen Cookies for $12!"
             android:textColor="@color/colorPrimary"
             android:layout_margin="@dimen/item_padding"
             android:layout_gravity="left"

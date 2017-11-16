@@ -306,7 +306,7 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 CartManager cartManager = new CartManager();
-                cartManager.addLineItem(StoreUtils.getEmojiByUnicode(0x1F36A), (double) 1, 1000);
+                cartManager.addLineItem(StoreUtils.getEmojiByUnicode(0x1F36A), (double) 1, 1200);
                 try {
                     Cart cart = cartManager.buildCart();
                     Intent paymentLaunchIntent = PaymentActivity.createIntent(context, cart);

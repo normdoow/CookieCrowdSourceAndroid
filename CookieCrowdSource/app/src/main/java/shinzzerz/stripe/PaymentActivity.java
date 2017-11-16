@@ -100,7 +100,7 @@ public class PaymentActivity extends AppCompatActivity {
         postalCode.setText(CookieIO.getPostalCode(this));
 
         if(!CookieIO.hasBoughtCookies(this)) {
-            amountLabel.setText("Get a Dozen Cookies for $5!");
+            amountLabel.setText("Get a Dozen Cookies for $6!");
 //            creditCardGroup.setVisibility(View.GONE);
         }
 
@@ -247,9 +247,9 @@ public class PaymentActivity extends AppCompatActivity {
         } else {
             // If 3DS is not required, you can charge the source.
             if(CookieIO.hasBoughtCookies(this)) {
-                completePurchase(source.getId(), 1000L);
+                completePurchase(source.getId(), 1200L);
             } else {
-                completePurchase(source.getId(), 500L);
+                completePurchase(source.getId(), 600L);
             }
         }
     }
@@ -326,7 +326,7 @@ public class PaymentActivity extends AppCompatActivity {
 
         AlertDialog alertDialog = new AlertDialog.Builder(this).create();
         alertDialog.setTitle("Thank You!");
-        alertDialog.setMessage("Thank you for your order! You will receive a dozen cookies in 30 to 40 minutes!");
+        alertDialog.setMessage("Thank you for your order! You will receive a dozen cookies in about 40 minutes!");
         alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "Yay!!!",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
