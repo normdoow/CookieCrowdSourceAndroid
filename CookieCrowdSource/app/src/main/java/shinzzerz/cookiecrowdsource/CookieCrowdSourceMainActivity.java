@@ -6,11 +6,13 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -83,6 +85,15 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
 
     @BindView(R.id.pacman_container)
     RelativeLayout pacmanContainer;
+
+    @BindView(R.id.drawer_layout)
+    DrawerLayout drawer;
+
+    @BindView(R.id.left_drawer_container)
+    LinearLayout drawerContainer;
+
+    @BindView(R.id.new_email_edit_text)
+    EditText newBakerEmailText;
 
     @Override
     public void onCreate(Bundle savedInstance) {
@@ -181,6 +192,41 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
                     }
                 });
         alertDialog.show();
+    }
+
+    @OnClick(R.id.hamburger_icon)
+    public void clickHamburgerButton() {
+        drawer.openDrawer(drawerContainer);
+    }
+
+    @OnClick(R.id.login_button)
+    public void clickLoginBaker() {
+        showNotification("Invalid Login", "The Email or password is incorrect.");
+    }
+
+    @OnClick(R.id.send_email_button)
+    public void clickSendEmailButton() {
+        String newEmail = newBakerEmailText.getText().toString();
+        Call<ResponseBody> callNewBaker = cookieAPI.sendNewBakerEmail(newEmail);
+        callNewBaker.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                try {
+                    if (response.body().string().equals("success sending email")) {
+                        showNotification("Success", "We now have your email and will get in contact with you about making Crowd Cookies!");
+                    } else {
+                        showNotification("Error", "We weren't able to receive your email. Try checking your internet connection.");
+                    }
+                } catch(Exception e) {
+                    showNotification("Error", "We weren't able to receive your email. Try checking your internet connection.");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                showNotification("Error", "We weren't able to receive your email. Try checking your internet connection.");
+            }
+        });
     }
 
     @Override
@@ -423,5 +469,20 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
             return false;
         }
         return true;
+    }
+
+    private void showNotification(String title, String message) {
+
+        AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+        alertDialog.setTitle(title);
+        alertDialog.setMessage(message);
+        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        finish();
+                    }
+                });
+        alertDialog.show();
     }
 }

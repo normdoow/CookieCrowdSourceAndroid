@@ -5,82 +5,197 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
-
-    <TextView
-        android:id="@+id/main_layout_text_view"
+    <android.support.v4.widget.DrawerLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/drawer_layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/colorMainActivityTitleBar"
-        android:text="@string/app_name_human_readable"
-        android:gravity="center"
-        android:textSize="40sp"
-        android:textColor="@color/colorMainActivityTitleBarText" />
+        android:layout_height="match_parent">
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <ImageView
-            android:id="@+id/main_layout_image_view"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:adjustViewBounds="true"
-            android:src="@drawable/cookie_background" />
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <ImageButton
+                    android:id="@+id/hamburger_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="30dp"
+                    android:src="@drawable/hamburger_icon"
+                    android:scaleType="centerInside"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentTop="true"
+                    android:layout_marginLeft="0dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@android:color/transparent"/>
+                <TextView
+                    android:id="@+id/main_layout_text_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@color/colorMainActivityTitleBar"
+                    android:text="@string/app_name_human_readable"
+                    android:gravity="center"
+                    android:layout_centerHorizontal="true"
+                    android:textSize="40sp"
+                    android:layout_marginTop="16dp"
+                    android:textColor="@color/colorMainActivityTitleBarText" />
+            </RelativeLayout>
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <ImageView
+                    android:id="@+id/main_layout_image_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:src="@drawable/cookie_background" />
 
-        <ImageView
-            android:id="@+id/first_dozen_free_image"
-            android:layout_width="200dp"
-            android:layout_height="150dp"
-            android:src="@drawable/first_dozen_half_off"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentTop="true"
-            android:layout_marginLeft="16dp"
-            android:layout_marginTop="16dp"/>
-    </RelativeLayout>
+                <ImageView
+                    android:id="@+id/first_dozen_free_image"
+                    android:layout_width="200dp"
+                    android:layout_height="150dp"
+                    android:src="@drawable/first_dozen_half_off"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentTop="true"
+                    android:layout_marginLeft="16dp"
+                    android:layout_marginTop="16dp"/>
+            </RelativeLayout>
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="12sp"
-        android:layout_margin="16dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
-        android:text="How Crowd Cookie Works\n- Delicious, homemade chocolate chip cookies are made by your neighbors.\n\n- Get a Dozen cookies for $12. \n\n- They are delivered right to your door in around 40 minutes!\n\n- Crowd Cookie is in Beta and only available in some areas of Dayton, Ohio.\n\n- Click the “Get hot cookies” button below to get your warm, homemade Cookies!"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:layout_margin="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:text="How Crowd Cookie Works\n- Delicious, homemade chocolate chip cookies are made by your neighbors.\n\n- Get a Dozen cookies for $12. \n\n- They are delivered right to your door in around 40 minutes!\n\n- Crowd Cookie is in Beta and only available in some areas of Dayton, Ohio.\n\n- Click the “Get hot cookies” button below to get your warm, homemade Cookies!"/>
 
-    <Button
-        android:id="@+id/ingredients_button"
-        android:layout_width="match_parent"
-        android:layout_height="35dp"
-        android:text="Ingredients?"
-        android:textSize="12sp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"/>
+            <Button
+                android:id="@+id/ingredients_button"
+                android:layout_width="match_parent"
+                android:layout_height="35dp"
+                android:text="Ingredients?"
+                android:textSize="12sp"
+                android:layout_marginBottom="8dp"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"/>
 
-    <Button
-        android:id="@+id/main_layout_get_cookies_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Get Cookies!"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
-        style="@style/CustomButton"/>
+            <Button
+                android:id="@+id/main_layout_get_cookies_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Get Cookies!"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
+                style="@style/CustomButton"/>
 
-    <RelativeLayout
-        android:id="@+id/pacman_container"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp">
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/colorMainActivityTitleBarText"/>
-        <com.wang.avi.AVLoadingIndicatorView
-            android:id="@+id/pacman_loading"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            app:indicatorName="PacmanIndicator" />
-    </RelativeLayout>
+            <RelativeLayout
+                android:id="@+id/pacman_container"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp">
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/colorMainActivityTitleBarText"/>
+                <com.wang.avi.AVLoadingIndicatorView
+                    android:id="@+id/pacman_loading"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    app:indicatorName="PacmanIndicator" />
+            </RelativeLayout>
+        </LinearLayout>
 
+        <LinearLayout
+            android:id="@+id/left_drawer_container"
+            android:orientation="horizontal"
+            android:layout_width="280dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="left"
+            android:divider="@android:color/transparent"
+            android:dividerHeight="0dp"
+            android:background="@color/colorMainActivityTitleBar">
+            <LinearLayout
+                android:id="@+id/child_frame_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="32dp"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Baker Login"
+                    android:layout_gravity="left"
+                    android:textSize="22sp"
+                    android:layout_marginBottom="16dp"
+                    android:textColor="@color/colorMainActivityTitleBarText"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Email"
+                    android:layout_gravity="left"
+                    android:textColor="@color/colorMainActivityTitleBarText"/>
+                
+                <shinzzerz.cookiecrowdsource.EditTextPopUpKeyboard
+                    android:id="@+id/email_edit_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:singleLine="true"
+                    android:layout_marginBottom="8dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Password"
+                    android:layout_gravity="left"
+                    android:textColor="@color/colorMainActivityTitleBarText"/>
+
+                <shinzzerz.cookiecrowdsource.EditTextPopUpKeyboard
+                    android:id="@+id/password_edit_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:singleLine="true"
+                    android:layout_marginBottom="8dp"
+                    android:inputType="textPassword"/>
+
+                <Button
+                    android:id="@+id/login_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Login"
+                    android:layout_marginBottom="16dp"
+                    style="@style/CustomButton"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Want to be a Crowd Cookie Baker? Let us know your email and we will get in contact with you!"
+                    android:layout_gravity="left"
+                    android:textColor="@color/colorMainActivityTitleBarText"/>
+
+                <shinzzerz.cookiecrowdsource.EditTextPopUpKeyboard
+                    android:id="@+id/new_email_edit_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:singleLine="true"
+                    android:layout_marginBottom="8dp"/>
+
+                <Button
+                    android:id="@+id/send_email_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Send Email"
+                    android:layout_marginBottom="16dp"
+                    style="@style/CustomButton"/>
+                
+            </LinearLayout>
+        </LinearLayout>
+
+    </android.support.v4.widget.DrawerLayout>
 </LinearLayout>

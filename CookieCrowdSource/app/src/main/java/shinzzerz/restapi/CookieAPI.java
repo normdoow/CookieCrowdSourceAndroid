@@ -3,7 +3,9 @@ package shinzzerz.restapi;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
+import retrofit2.http.Body;
 import retrofit2.http.GET;
+import retrofit2.http.Query;
 
 /**
  * Created by noahbragg on 10/1/17.
@@ -28,6 +30,9 @@ public interface CookieAPI {
 
     @GET("is_isaiah_available")
     Call<ResponseBody> isIsaiahAvailable();
+
+    @GET("send_new_baker_email")
+    Call<ResponseBody> sendNewBakerEmail(@Query("email") String address);
 
     @GET("create_customer")
     Call<ResponseBody> createCustomer();
