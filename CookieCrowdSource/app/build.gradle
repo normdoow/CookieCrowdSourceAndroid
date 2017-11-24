@@ -25,6 +25,7 @@ android {
 }
 
 dependencies {
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     compile fileTree(dir: 'libs', include: ['*.jar'])
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
@@ -65,10 +66,14 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
 
     // for GCM services used for notifications
-    compile 'com.google.android.gms:play-services-gcm:11.0.4' // This version if often updated by Google Play Services.
+    compile 'com.google.android.gms:play-services-gcm:11.0.4'
+    // This version if often updated by Google Play Services.
     //pusher
     compile 'com.pusher:pusher-java-client:1.5.0'
     compile 'com.pusher:pusher-websocket-android:0.6.0'
+
+    //for the 5 star library
+    compile 'com.iarcuschin:simpleratingbar:0.1.5'
 
 }
 repositories {
@@ -78,3 +83,5 @@ repositories {
 
 apply plugin: 'com.google.gms.google-services'
 
+
+apply plugin: 'kotlin-android-extensions'

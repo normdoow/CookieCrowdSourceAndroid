@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="shinzzerz.cookiecrowdsource.RatingActivity"
+    android:orientation="vertical"
+    android:layout_margin="16dp">
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Cookie's will arrive in about..."
+        android:layout_gravity="center"
+        android:textColor="@color/colorMainActivityTitleBarText"
+        android:layout_marginTop="30dp"/>
+    <TextView
+        android:id="@+id/time_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="40 min."
+        android:layout_gravity="center"
+        android:textSize="24sp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="30dp"
+        android:textColor="@color/colorMainActivityTitleBarText"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Rate the Baker once cookie's have arrived!"
+        android:layout_gravity="left"
+        android:textColor="@color/colorMainActivityTitleBarText"
+        android:layout_marginBottom="10dp"/>
+
+    <com.iarcuschin.simpleratingbar.SimpleRatingBar
+        android:id="@+id/rating"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:srb_starSize="40dp"
+        app:srb_numberOfStars="5"
+        app:srb_rating="4"
+        app:srb_stepSize="1"
+        app:srb_borderColor="@color/colorMainActivityTitleBarText"
+        app:srb_fillColor="@color/colorMainActivityTitleBarText"
+        android:layout_marginBottom="30dp"
+        />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="10dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Were the Cookies hot?"
+            android:layout_gravity="left"
+            android:textColor="@color/colorMainActivityTitleBarText"
+            android:layout_marginRight="50dp"/>
+        <RadioGroup
+            android:id="@+id/hot_group"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Yes"/>
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="No"/>
+        </RadioGroup>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Would you recommend\nCrowd Cookie to a friend?"
+            android:layout_gravity="left"
+            android:textColor="@color/colorMainActivityTitleBarText"
+            android:layout_marginRight="30dp"/>
+        <RadioGroup
+            android:id="@+id/recommend_group"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Yes"/>
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="No"/>
+        </RadioGroup>
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Comments:"
+        android:layout_gravity="left"
+        android:textColor="@color/colorMainActivityTitleBarText"/>
+    
+    <shinzzerz.cookiecrowdsource.EditTextPopUpKeyboard
+        android:id="@+id/comments_text"
+        android:layout_width="match_parent"
+        android:layout_height="110dp"
+        android:lines="5"/>
+
+    <Button
+        android:id="@+id/submit_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Submit"
+        android:layout_gravity="center"
+        android:layout_marginBottom="8dp"
+        style="@style/CustomButton"/>
+
+    <Button
+        android:id="@+id/skip_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Skip"
+        android:layout_gravity="center"/>
+    
+</LinearLayout>

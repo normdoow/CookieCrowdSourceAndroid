@@ -40,6 +40,7 @@ import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
 import shinzzerz.cookiecrowdsource.R;
+import shinzzerz.cookiecrowdsource.RatingActivity;
 import shinzzerz.io.CookieIO;
 
 public class PaymentActivity extends AppCompatActivity {
@@ -323,7 +324,7 @@ public class PaymentActivity extends AppCompatActivity {
 
     private void finishCharge() {
         mProgressDialogFragment.dismiss();
-
+        Context context = this;
         AlertDialog alertDialog = new AlertDialog.Builder(this).create();
         alertDialog.setTitle("Thank You!");
         alertDialog.setMessage("Thank you for your order! You will receive a dozen cookies in about 40 minutes!");
@@ -331,7 +332,9 @@ public class PaymentActivity extends AppCompatActivity {
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
-                        finish();
+//                        finish();
+                        Intent intent = new Intent(context, RatingActivity.class);
+                        startActivity(intent);
                     }
                 });
         alertDialog.show();

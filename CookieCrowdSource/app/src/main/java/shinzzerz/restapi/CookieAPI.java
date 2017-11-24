@@ -34,6 +34,10 @@ public interface CookieAPI {
     @GET("send_new_baker_email")
     Call<ResponseBody> sendNewBakerEmail(@Query("email") String address);
 
+    @GET("send_rating_email")
+    Call<ResponseBody> sendRating(@Query("rating") String rating, @Query("comments") String comments,
+                                         @Query("isWarm") String isWarm, @Query("isRecommend") String isRecommend);
+
     @GET("create_customer")
     Call<ResponseBody> createCustomer();
 
