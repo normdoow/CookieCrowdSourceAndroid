@@ -75,6 +75,9 @@ dependencies {
     //for the 5 star library
     compile 'com.iarcuschin:simpleratingbar:0.1.5'
 
+    //for analytics and mixpanel
+    compile "com.mixpanel.android:mixpanel-android:5.+"
+
 }
 repositories {
     mavenCentral()

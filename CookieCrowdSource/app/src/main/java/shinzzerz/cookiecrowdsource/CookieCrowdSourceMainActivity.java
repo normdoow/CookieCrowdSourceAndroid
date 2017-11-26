@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
@@ -52,6 +53,10 @@ import shinzzerz.location.SimpleLocation;
 import shinzzerz.restapi.CookieAPI;
 import shinzzerz.stripe.PaymentActivity;
 import shinzzerz.stripe.StoreUtils;
+import com.mixpanel.android.mpmetrics.MixpanelAPI;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Created by administratorz on 9/2/2017.
@@ -71,6 +76,8 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
     private Context context;
     private Subscription intervalSubscription;
     private Subscription locationSubscription;
+
+    private MixpanelAPI mixpanel;
 
     CookieAPI cookieAPI;
     @BindView(R.id.main_layout_get_cookies_button)
@@ -106,6 +113,9 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
         LinearLayout mainActivity;
         mainActivity = (LinearLayout) getLayoutInflater().inflate(R.layout.main_layout, null);
         setContentView(mainActivity);
+
+        String projectToken = "";
+        mixpanel = MixpanelAPI.getInstance(this, projectToken);
 
         ButterKnife.bind(this);
         initAndroidPay();
@@ -306,6 +316,7 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
         getCookiesButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                sendMixPanelAnaltyics("cookeis_unavailable_ Wrong Location and no cookies");
                 AlertDialog alertDialog = new AlertDialog.Builder(context).create();
                 alertDialog.setTitle("Wrong Location and No Cookies");
                 alertDialog.setMessage("There are no cooks that are making cookies currently. Try again in the evening from 5pm to 9pm. There is more chance that we will be making cookies then! You also must be in a location that is in a 5 mile radius around the Greene to be able to order cookies. Thank you for your patience while we are getting this new business idea up and running!");
@@ -325,6 +336,7 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
         getCookiesButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                sendMixPanelAnaltyics("cookeis_unavailable_ Wrong Location");
                 AlertDialog alertDialog = new AlertDialog.Builder(context).create();
                 alertDialog.setTitle("Wrong Location");
                 alertDialog.setMessage("You must be in a location that is in a 5 mile radius from the Greene for you to be able to order cookies. We will hopefully be coming to a location closer to you soon! Thank you for your patience while we are getting this new business idea up and running!");
@@ -344,6 +356,7 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
         getCookiesButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                sendMixPanelAnaltyics("cookeis_unavailable_ no cookies");
                 AlertDialog alertDialog = new AlertDialog.Builder(context).create();
                 alertDialog.setTitle("No Cookies");
                 alertDialog.setMessage("There are no cooks that are making cookies currently. Try again in the evening from 5pm to 9pm. There is more chance that we will be making cookies then! Thank you for your patience while we are getting this new business idea up and running!");
@@ -363,6 +376,7 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
         getCookiesButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                sendMixPanelAnaltyics("Selected Get Hot Cookies");
                 CartManager cartManager = new CartManager();
                 cartManager.addLineItem(StoreUtils.getEmojiByUnicode(0x1F36A), (double) 1, 1200);
                 try {
@@ -484,5 +498,14 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
                     }
                 });
         alertDialog.show();
+    }
+
+    private void sendMixPanelAnaltyics(String message) {
+//        try {
+            JSONObject props = new JSONObject();
+            mixpanel.track(message, props);
+//        } catch (JSONException e) {
+//            Log.e("MYAPP", "Unable to add properties to JSONObject", e);
+//        }
     }
 }
