@@ -65,7 +65,7 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
     private static final double CDC_LAT = 39.691483;
     private static final double CDC_LONG = -84.101717;
     private static final double ISAIAH_LAT = 39.673647;
-    private static final double ISAIAH_LONG = 83.977037;
+    private static final double ISAIAH_LONG = -83.977037;
     private static final double DISTANCE_RADIUS_FROM_CDC = 3.5;
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 88;
 
@@ -218,25 +218,29 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
     public void clickSendEmailButton() {
         String newEmail = newBakerEmailText.getText().toString();
         Call<ResponseBody> callNewBaker = cookieAPI.sendNewBakerEmail(newEmail);
-        callNewBaker.enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                try {
-                    if (response.body().string().equals("success sending email")) {
-                        showNotification("Success", "We now have your email and will get in contact with you about making Crowd Cookies!");
-                    } else {
+        if(!newEmail.equals("")) {
+            callNewBaker.enqueue(new Callback<ResponseBody>() {
+                @Override
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                    try {
+                        if (response.body().string().equals("success sending email")) {
+                            showNotification("Success", "We now have your email and will get in contact with you about making Crowd Cookies!");
+                        } else {
+                            showNotification("Error", "We weren't able to receive your email. Try checking your internet connection.");
+                        }
+                    } catch (Exception e) {
                         showNotification("Error", "We weren't able to receive your email. Try checking your internet connection.");
                     }
-                } catch(Exception e) {
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBody> call, Throwable t) {
                     showNotification("Error", "We weren't able to receive your email. Try checking your internet connection.");
                 }
-            }
-
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-                showNotification("Error", "We weren't able to receive your email. Try checking your internet connection.");
-            }
-        });
+            });
+        } else {
+            showNotification("No Email", "Please provide an email for us to be able to contact you.");
+        }
     }
 
     @Override
