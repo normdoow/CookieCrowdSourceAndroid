@@ -8,8 +8,8 @@ android {
         applicationId "shinzzerz.cookiecrowdsource"
         minSdkVersion 19
         targetSdkVersion 25
-        versionCode 12
-        versionName "1.2"
+        versionCode 121
+        versionName "1.2.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

@@ -119,7 +119,7 @@
             android:dividerHeight="0dp"
             android:background="@color/colorMainActivityTitleBar">
             <LinearLayout
-                android:id="@+id/child_frame_container"
+                android:id="@+id/login_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
@@ -194,6 +194,59 @@
                     android:layout_marginBottom="16dp"
                     style="@style/CustomButton"/>
                 
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/baker_dashbaord_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="32dp"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Baker Dashboard"
+                    android:layout_gravity="left"
+                    android:textSize="22sp"
+                    android:layout_marginBottom="16dp"
+                    android:textColor="@color/colorMainActivityTitleBarText"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="You can turn your availability ON and OFF from the switch below. When the switch is ON, be prepared to receive emails and fulfill orders!"
+                    android:layout_gravity="left"
+                    android:textColor="@color/colorMainActivityTitleBarText"
+                    android:layout_marginBottom="24dp"/>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="200dp">
+                    <TextView
+                        android:id="@+id/availability_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Not Available to Customers"
+                        android:layout_gravity="left"
+                        android:textColor="@color/colorMainActivityTitleBarText"
+                        android:layout_alignParentLeft="true"/>
+                    <Switch
+                        android:id="@+id/available_switch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentRight="true"/>
+                </RelativeLayout>
+
+                <Button
+                    android:id="@+id/sign_out_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Sign Out"
+                    android:layout_marginBottom="16dp"
+                    android:layout_gravity="center"/>
             </LinearLayout>
         </LinearLayout>
 

@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
@@ -17,6 +16,8 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.Switch;
+import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -45,6 +46,7 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import shinzzerz.KeyKt;
+import shinzzerz.io.BakerIO;
 import shinzzerz.io.CookieIO;
 import shinzzerz.location.DistTypeEnum;
 import shinzzerz.location.GetCurrentLocation;
@@ -55,7 +57,6 @@ import shinzzerz.stripe.PaymentActivity;
 import shinzzerz.stripe.StoreUtils;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
@@ -101,6 +102,15 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
 
     @BindView(R.id.new_email_edit_text)
     EditText newBakerEmailText;
+
+    @BindView(R.id.login_container)
+    LinearLayout loginContainer;
+    @BindView(R.id.baker_dashbaord_container)
+    LinearLayout bakerDashboardContainer;
+    @BindView(R.id.availability_text)
+    TextView availabilityText;
+    @BindView(R.id.available_switch)
+    Switch availableSwitch;
 
     @Override
     public void onCreate(Bundle savedInstance) {
@@ -153,6 +163,8 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
 
             // Ready to subscribe to topics!
         }
+
+        setupDrawer();
     }
 
     @Override
@@ -173,6 +185,23 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
                 });
         if (CookieIO.hasBoughtCookies(this)) {
             firstDozenImage.setVisibility(View.GONE);
+        }
+    }
+
+    private void setupDrawer() {
+        if(BakerIO.getBakerEmail(context).equals("")) {
+            loginContainer.setVisibility(View.VISIBLE);
+            bakerDashboardContainer.setVisibility(View.GONE);
+        } else {
+            loginContainer.setVisibility(View.GONE);
+            bakerDashboardContainer.setVisibility(View.VISIBLE);
+        }
+        if(BakerIO.isAvailableToCustomers(context)) {
+            availabilityText.setText("Available to Customers");
+            availableSwitch.setChecked(true);
+        } else {
+            availabilityText.setText("Not Available to Customers");
+            availableSwitch.setChecked(false);
         }
     }
 
@@ -212,6 +241,8 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
     @OnClick(R.id.login_button)
     public void clickLoginBaker() {
         showNotification("Invalid Login", "The Email or password is incorrect.");
+        BakerIO.setBakerEmail(context, "noahbragg@cedarville.edu");
+        setupDrawer();
     }
 
     @OnClick(R.id.send_email_button)
@@ -241,6 +272,44 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
         } else {
             showNotification("No Email", "Please provide an email for us to be able to contact you.");
         }
+    }
+
+    @OnClick(R.id.available_switch)
+    public void bakerAvailableChange(Switch bakerSwitch) {
+        String message = "You are turning ON your availabilty to bake cookies. Are you sure you are ready to fulfill orders?";
+        if (!bakerSwitch.isChecked()) {
+            message = "Are you sure that you want to turn OFF your availabilty to bake cookies?";
+        }
+        AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+        alertDialog.setTitle("Are You Sure?");
+        alertDialog.setMessage(message);
+        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "YES", (DialogInterface dialog, int which) -> {
+            dialog.dismiss();
+            BakerIO.setAvailableToCustomers(context, bakerSwitch.isChecked());
+            setupDrawer();
+        });
+        alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "NO", (DialogInterface dialog, int which) -> {
+            bakerSwitch.setChecked(!bakerSwitch.isChecked());
+            dialog.dismiss();
+        });
+        alertDialog.show();
+    }
+
+    @OnClick(R.id.sign_out_button)
+    public void signOutButton() {
+        AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+        alertDialog.setTitle("Are You Sure?");
+        alertDialog.setMessage("Signing out will automatically turn off your availability for baking.");
+        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "YES", (DialogInterface dialog, int which) -> {
+            dialog.dismiss();
+            BakerIO.setAvailableToCustomers(context, false);
+            BakerIO.setBakerEmail(context, "");
+            setupDrawer();
+        });
+        alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "NO", (DialogInterface dialog, int which) -> {
+            dialog.dismiss();
+        });
+        alertDialog.show();
     }
 
     @Override
@@ -498,7 +567,7 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
-                        finish();
+//                        finish();
                     }
                 });
         alertDialog.show();
