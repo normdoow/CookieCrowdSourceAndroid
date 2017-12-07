@@ -25,9 +25,6 @@ public interface CookieAPI {
 //    @POST("users/new")
 //    Call<String> createUser(@Body String user);
 
-    @GET("is_cook_available")
-    Call<ResponseBody> isCookAvailable();
-
     @GET("is_isaiah_available")
     Call<ResponseBody> isIsaiahAvailable();
 
@@ -37,6 +34,15 @@ public interface CookieAPI {
     @GET("send_rating_email")
     Call<ResponseBody> sendRating(@Query("rating") String rating, @Query("comments") String comments,
                                          @Query("isWarm") String isWarm, @Query("isRecommend") String isRecommend);
+
+    @GET("change_baker_availability")
+    Call<ResponseBody> changeBakerAvailability(@Query("baker_email") String bakerEmail, @Query("is_available") String isAvailableText);
+
+    @GET("login_baker")
+    Call<ResponseBody> loginBaker(@Query("pw") String pw, @Query("email") String email);
+
+    @GET("cook_available")
+    Call<ResponseBody> getCookAvailable(@Query("lat") String lat, @Query("long") String lon);
 
     @GET("create_customer")
     Call<ResponseBody> createCustomer();

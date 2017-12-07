@@ -111,6 +111,10 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
     TextView availabilityText;
     @BindView(R.id.available_switch)
     Switch availableSwitch;
+    @BindView(R.id.password_edit_text)
+    EditText passwordEditText;
+    @BindView(R.id.email_edit_text)
+    EditText emailEditText;
 
     @Override
     public void onCreate(Bundle savedInstance) {
@@ -124,7 +128,7 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
         mainActivity = (LinearLayout) getLayoutInflater().inflate(R.layout.main_layout, null);
         setContentView(mainActivity);
 
-        String projectToken = "";
+        String projectToken = "2f1bf0154e0e5c93761c28e0060cc30b";
         mixpanel = MixpanelAPI.getInstance(this, projectToken);
 
         ButterKnife.bind(this);
@@ -240,9 +244,27 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
 
     @OnClick(R.id.login_button)
     public void clickLoginBaker() {
-        showNotification("Invalid Login", "The Email or password is incorrect.");
-        BakerIO.setBakerEmail(context, "noahbragg@cedarville.edu");
-        setupDrawer();
+        Call<ResponseBody> callLoginBaker = cookieAPI.loginBaker(passwordEditText.getText().toString(), emailEditText.getText().toString());
+        callLoginBaker.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                try {
+                    if(response.body().string().equals("success")) {
+                        BakerIO.setBakerEmail(context, emailEditText.getText().toString());
+                        setupDrawer();
+                    } else {
+                        showNotification("Invalid Login", "The Email or password is incorrect.");
+                    }
+                } catch (IOException e) {
+                    showNotification("Invalid Login", "The Email or password is incorrect.");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                showNotification("Invalid Login", "The Email or password is incorrect.");
+            }
+        });
     }
 
     @OnClick(R.id.send_email_button)
@@ -284,9 +306,35 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
         alertDialog.setTitle("Are You Sure?");
         alertDialog.setMessage(message);
         alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "YES", (DialogInterface dialog, int which) -> {
-            dialog.dismiss();
-            BakerIO.setAvailableToCustomers(context, bakerSwitch.isChecked());
-            setupDrawer();
+
+            Call<ResponseBody> callChangeBaker = cookieAPI.changeBakerAvailability(BakerIO.getBakerEmail(context), bakerSwitch.isChecked()? "Yes" : "No");
+            callChangeBaker.enqueue(new Callback<ResponseBody>() {
+                @Override
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                    try {
+                        if(response.body().string().equals("success")) {
+                            dialog.dismiss();
+                            BakerIO.setAvailableToCustomers(context, bakerSwitch.isChecked());
+                            setupDrawer();
+                        } else {
+                            bakerSwitch.setChecked(!bakerSwitch.isChecked());
+                            dialog.dismiss();
+                            showNotification("Failed", "Failed to change your availability");
+                        }
+                    } catch (IOException e) {
+                        bakerSwitch.setChecked(!bakerSwitch.isChecked());
+                        dialog.dismiss();
+                        showNotification("Failed", "Failed to change your availability");
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                    bakerSwitch.setChecked(!bakerSwitch.isChecked());
+                    dialog.dismiss();
+                    showNotification("Failed", "Failed to change your availability");
+                }
+            });
         });
         alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "NO", (DialogInterface dialog, int which) -> {
             bakerSwitch.setChecked(!bakerSwitch.isChecked());
@@ -301,10 +349,32 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
         alertDialog.setTitle("Are You Sure?");
         alertDialog.setMessage("Signing out will automatically turn off your availability for baking.");
         alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "YES", (DialogInterface dialog, int which) -> {
-            dialog.dismiss();
-            BakerIO.setAvailableToCustomers(context, false);
-            BakerIO.setBakerEmail(context, "");
-            setupDrawer();
+            Call<ResponseBody> callChangeBaker = cookieAPI.changeBakerAvailability(BakerIO.getBakerEmail(context), "No");
+            callChangeBaker.enqueue(new Callback<ResponseBody>() {
+                @Override
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                    try {
+                        if(response.body().string().equals("success")) {
+                            dialog.dismiss();
+                            BakerIO.setAvailableToCustomers(context, false);
+                            BakerIO.setBakerEmail(context, "");
+                            setupDrawer();
+                        } else {
+                            dialog.dismiss();
+                            showNotification("Failed", "Failed to change your availability");
+                        }
+                    } catch (IOException e) {
+                        dialog.dismiss();
+                        showNotification("Failed", "Failed to change your availability");
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                    dialog.dismiss();
+                    showNotification("Failed", "Failed to change your availability");
+                }
+            });
         });
         alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "NO", (DialogInterface dialog, int which) -> {
             dialog.dismiss();
