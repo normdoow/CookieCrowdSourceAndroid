@@ -268,7 +268,8 @@ public class PaymentActivity extends AppCompatActivity {
         }
         final Context context = this;
 
-        Observable<Void> stripeResponse = stripeService.createQueryCharge(price, sourceId, CookieIO.getCustomerId(this), email.getText().toString());
+        Observable<Void> stripeResponse = stripeService.createQueryCharge(price, sourceId, CookieIO.getCustomerId(this),
+                                                                        CookieIO.getMyBakerEmail(context), email.getText().toString());
         final FragmentManager fragmentManager = getSupportFragmentManager();
         mCompositeSubscription.add(stripeResponse
                 .subscribeOn(Schedulers.io())

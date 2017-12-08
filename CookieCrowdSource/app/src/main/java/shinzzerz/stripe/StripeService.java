@@ -13,11 +13,12 @@ public interface StripeService {
     // For simplicity, we have URL encoded our body data, but your code will likely
     // want a model class send up as JSON
     @FormUrlEncoded
-    @POST("charge")
+    @POST("charge_v2")
     Observable<Void> createQueryCharge(
             @Field("amount") long amount,
             @Field("source") String source,
             @Field("customer_id") String customerId,
+            @Field("baker_email") String bakerEmail,
             @Field("email") String email);
 
     @FormUrlEncoded

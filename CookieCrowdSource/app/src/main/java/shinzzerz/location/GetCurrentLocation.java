@@ -179,7 +179,7 @@ public class GetCurrentLocation {
      * @param locationToMeasureFrom
      * @return
      */
-    public Observable<SimpleDistance> getDistanceInMeters(Activity callingActivity, SimpleLocation locationToMeasureFrom, SimpleDistance distance) {
+    public Observable<SimpleLocation> getDistanceInMeters(Activity callingActivity, SimpleLocation locationToMeasureFrom, SimpleDistance distance) {
         SimpleLocation mySimpleLocation = new SimpleLocation();
         getLocation(callingActivity, false, mySimpleLocation);
 
@@ -194,7 +194,7 @@ public class GetCurrentLocation {
 
             distance.setDistance(results[0], DistTypeEnum.Meters);
 
-            return Observable.just(distance);
+            return Observable.just(aLocation);
         });
     }
 

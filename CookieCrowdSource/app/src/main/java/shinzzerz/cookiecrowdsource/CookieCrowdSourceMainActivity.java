@@ -63,20 +63,14 @@ import org.json.JSONObject;
  * Created by administratorz on 9/2/2017.
  */
 public class CookieCrowdSourceMainActivity extends AppCompatActivity {
-    private static final double CDC_LAT = 39.691483;
-    private static final double CDC_LONG = -84.101717;
-    private static final double ISAIAH_LAT = 39.673647;
-    private static final double ISAIAH_LONG = -83.977037;
-    private static final double DISTANCE_RADIUS_FROM_CDC = 3.5;
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 88;
 
     private GetCurrentLocation myLocation = new GetCurrentLocation();
     private boolean obtainedLocation = false;
-    private boolean noahAvailable = false;
-    private boolean isaiahAvailable = false;
     private Context context;
     private Subscription intervalSubscription;
     private Subscription locationSubscription;
+    private String whyNoCookiesText;
 
     private MixpanelAPI mixpanel;
 
@@ -174,9 +168,8 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-
         //run async task that checks for location and api calls every 20 seconds to update the view
-        intervalSubscription = Observable.interval(20, TimeUnit.SECONDS)
+        intervalSubscription = Observable.interval(15, TimeUnit.SECONDS)
                 .startWith((long) 0)
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -419,90 +412,62 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
             myLocation.turnLocationOn(this, true);
         } else if (!obtainedLocation) {
             showLoadingPacMan();
-            SimpleDistance distanceAwayFromCdc = new SimpleDistance();
-            SimpleDistance distanceAwayFromIsaiah = new SimpleDistance();
 
-            Observable<SimpleDistance> observable = myLocation.getDistanceInMeters(this, new SimpleLocation(CDC_LAT, CDC_LONG), distanceAwayFromCdc);
-
-            Observable<SimpleDistance> observableIsaiah = myLocation.getDistanceInMeters(this, new SimpleLocation(ISAIAH_LAT, ISAIAH_LONG), distanceAwayFromIsaiah);
-
-            locationSubscription = Observable.concat(observable, observableIsaiah)
+            locationSubscription = myLocation.getDistanceInMeters(this, new SimpleLocation(), new SimpleDistance())
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe((Void) -> updateButtonBasedOnCookieLogic(distanceAwayFromCdc, distanceAwayFromIsaiah));
+                    .subscribe( location -> {
+                        Call<ResponseBody> callCookAvailable = cookieAPI.getCookAvailable(location.getLat() + "", location.getLong() + "");
+                        callCookAvailable.enqueue(new Callback<ResponseBody>() {
+                            @Override
+                            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                                try {
+                                    String value = response.body().string();
+                                    if (value.contains("@")) {
+                                        whyNoCookiesText = "";
+                                        CookieIO.setMyBakerEmail(context, value);
+                                    } else {
+                                        whyNoCookiesText = value;
+                                        CookieIO.setMyBakerEmail(context, "");
+                                    }
+
+                                } catch (IOException e) {
+                                    whyNoCookiesText = "Failed to Connect.";
+                                    CookieIO.setMyBakerEmail(context, "");
+                                }
+                                updateGetCookiesButton();
+                            }
+
+                            @Override
+                            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                                whyNoCookiesText = "Failed to Connect.";
+                                CookieIO.setMyBakerEmail(context, "");
+                                updateGetCookiesButton();
+                            }
+                        });
+                    });
         }
     }
 
-    private void updateButtonBasedOnCookieLogic(SimpleDistance dist, SimpleDistance dist2) {
-        int distNoah = (int) Math.ceil(dist.getDistance(DistTypeEnum.Miles));
-        int distIsaiah = (int) Math.ceil(dist2.getDistance(DistTypeEnum.Miles));
-
+    private void updateGetCookiesButton() {
         hideLoadingPacMan();
 
-        boolean isNoahRightLocation = distNoah <= DISTANCE_RADIUS_FROM_CDC;
-        boolean isIsaiahRightLocation = distIsaiah <= DISTANCE_RADIUS_FROM_CDC;
-
-        //Do cookie logic!
-        if (!noahAvailable && !isNoahRightLocation && !isaiahAvailable && !isIsaiahRightLocation) {
-            outsideLocationAndNoCookies();
-        } else if ((!noahAvailable && isNoahRightLocation || !isaiahAvailable && isIsaiahRightLocation) && !(isIsaiahRightLocation && isNoahRightLocation)) {
-            noCookies();
-        } else if (!isNoahRightLocation && !isIsaiahRightLocation) {
-            outsideLocation();
+        if(whyNoCookiesText != "") {
+            whyNoCookiesButton();
         } else {
             haveCookies();
         }
     }
 
-    private void outsideLocationAndNoCookies() {
+    private void whyNoCookiesButton() {
         getCookiesButton.setText("Why can't I get cookies?");
         getCookiesButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendMixPanelAnaltyics("cookeis_unavailable_ Wrong Location and no cookies");
+                sendMixPanelAnaltyics(whyNoCookiesText);
                 AlertDialog alertDialog = new AlertDialog.Builder(context).create();
-                alertDialog.setTitle("Wrong Location and No Cookies");
-                alertDialog.setMessage("There are no cooks that are making cookies currently. Try again in the evening from 5pm to 9pm. There is more chance that we will be making cookies then! You also must be in a location that is in a 5 mile radius around the Greene to be able to order cookies. Thank you for your patience while we are getting this new business idea up and running!");
-                alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "Ok",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        });
-                alertDialog.show();
-            }
-        });
-    }
-
-    private void outsideLocation() {
-        getCookiesButton.setText("Why can't I get cookies?");
-        getCookiesButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                sendMixPanelAnaltyics("cookeis_unavailable_ Wrong Location");
-                AlertDialog alertDialog = new AlertDialog.Builder(context).create();
-                alertDialog.setTitle("Wrong Location");
-                alertDialog.setMessage("You must be in a location that is in a 5 mile radius from the Greene for you to be able to order cookies. We will hopefully be coming to a location closer to you soon! Thank you for your patience while we are getting this new business idea up and running!");
-                alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "Ok",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        });
-                alertDialog.show();
-            }
-        });
-    }
-
-    private void noCookies() {
-        getCookiesButton.setText("Why can't I get cookies?");
-        getCookiesButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                sendMixPanelAnaltyics("cookeis_unavailable_ no cookies");
-                AlertDialog alertDialog = new AlertDialog.Builder(context).create();
-                alertDialog.setTitle("No Cookies");
-                alertDialog.setMessage("There are no cooks that are making cookies currently. Try again in the evening from 5pm to 9pm. There is more chance that we will be making cookies then! Thank you for your patience while we are getting this new business idea up and running!");
+                alertDialog.setTitle("Why can't I get cookies?");
+                alertDialog.setMessage(whyNoCookiesText);
                 alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "Ok",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
@@ -556,39 +521,6 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
      * This function starts the calls to determine if a cookie is available.
      */
     private void apiCalls() {
-        Call<ResponseBody> callCookAvailable = cookieAPI.isCookAvailable();
-        callCookAvailable.enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                try {
-                    noahAvailable = response.body().string().equals("True");
-                } catch (IOException e) {
-                    noahAvailable = false;
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-                noahAvailable = false;
-            }
-        });
-
-        Call<ResponseBody> callIsaiahAvailable = cookieAPI.isIsaiahAvailable();
-        callIsaiahAvailable.enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                try {
-                    isaiahAvailable = response.body().string().equals("True");
-                } catch (IOException e) {
-                    isaiahAvailable = false;
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-                isaiahAvailable = false;
-            }
-        });
 
         if (CookieIO.getCustomerId(this) == null) {      //create a new customer only if there isn't one already
             final Context con = this;

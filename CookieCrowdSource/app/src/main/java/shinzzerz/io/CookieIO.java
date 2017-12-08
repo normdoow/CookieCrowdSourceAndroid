@@ -19,6 +19,7 @@ public class CookieIO {
     private static String LINE2 = "line2";
     private static String POSTAL_CODE = "postal-code";
     private static String HAS_BOUGHT_COOKIES = "has-bought-cookies";
+    private static String MY_BAKER_EMAIL = "my-baker-email";
 
     public static String getCustomerId(Context context) {
         SharedPreferences pref = context.getApplicationContext().getSharedPreferences(PREF, context.MODE_PRIVATE);
@@ -98,6 +99,14 @@ public class CookieIO {
 
     public static void setPostalCode(Context context, String value) {
         setStringhelper(context, POSTAL_CODE, value);
+    }
+
+    public static String getMyBakerEmail(Context context) {
+        return getStringHelper(context, MY_BAKER_EMAIL);
+    }
+
+    public static void setMyBakerEmail(Context context, String value) {
+        setStringhelper(context, MY_BAKER_EMAIL, value);
     }
 
     private static String getStringHelper(Context context, String key) {
