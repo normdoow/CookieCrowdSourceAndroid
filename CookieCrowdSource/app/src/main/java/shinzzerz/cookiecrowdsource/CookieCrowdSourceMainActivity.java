@@ -30,6 +30,8 @@ import com.stripe.wrap.pay.utils.CartManager;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
@@ -55,6 +57,10 @@ import shinzzerz.location.SimpleLocation;
 import shinzzerz.restapi.CookieAPI;
 import shinzzerz.stripe.PaymentActivity;
 import shinzzerz.stripe.StoreUtils;
+import ss.com.bannerslider.banners.Banner;
+import ss.com.bannerslider.banners.DrawableBanner;
+import ss.com.bannerslider.views.BannerSlider;
+
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 
 import org.json.JSONObject;
@@ -97,6 +103,9 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
     @BindView(R.id.new_email_edit_text)
     EditText newBakerEmailText;
 
+    @BindView(R.id.image_slider)
+    BannerSlider bannerSlider;
+
     @BindView(R.id.login_container)
     LinearLayout loginContainer;
     @BindView(R.id.baker_dashbaord_container)
@@ -122,7 +131,7 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
         mainActivity = (LinearLayout) getLayoutInflater().inflate(R.layout.main_layout, null);
         setContentView(mainActivity);
 
-        String projectToken = "2f1bf0154e0e5c93761c28e0060cc30b";
+        String projectToken = "";
         mixpanel = MixpanelAPI.getInstance(this, projectToken);
 
         ButterKnife.bind(this);
@@ -162,6 +171,7 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
             // Ready to subscribe to topics!
         }
 
+        setupBannerSlider();
         setupDrawer();
     }
 
@@ -183,6 +193,15 @@ public class CookieCrowdSourceMainActivity extends AppCompatActivity {
         if (CookieIO.hasBoughtCookies(this)) {
             firstDozenImage.setVisibility(View.GONE);
         }
+    }
+
+    private void setupBannerSlider() {
+        List<Banner> banners=new ArrayList<>();
+        //add banner using resource drawable
+        banners.add(new DrawableBanner(R.drawable.cookie_background));
+        banners.add(new DrawableBanner(R.drawable.cookies_img2));
+        banners.add(new DrawableBanner(R.drawable.cookie_background));
+        bannerSlider.setBanners(banners);
     }
 
     private void setupDrawer() {
